@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Argo</string>
+    <string name="hint_user_name">请输入用户名</string>
+    <string name="hint_password">请输入密码</string>
+    <string name="text_login_btn">登录</string>
+    <string name="text_save_user_name">记住用户名</string>
+    <string name="text_save_password">记住密码</string>
+    <string name="action_settings">设置</string>
+    <string name="btn_top10">十大</string>
+    <string name="mail">站内信</string>
+    <string name="all_boards">分区</string>
+    
+    <string name="actionbar_title_top10">今日十大</string>
+
+</resources>

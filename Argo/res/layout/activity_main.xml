@@ -1,0 +1,25 @@
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/main_layout" >
+
+    <android.support.v4.widget.SlidingPaneLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/left_sliding_pane"
+        tools:context=".MainActivity" >
+
+        <include layout="@layout/view_master" />
+
+        <include layout="@layout/view_detail" />
+    </android.support.v4.widget.SlidingPaneLayout>
+
+    <include layout="@layout/right_drawer"
+        android:layout_gravity="end"
+        android:layout_width="240dp"
+        android:layout_height="match_parent" />
+
+</android.support.v4.widget.DrawerLayout>

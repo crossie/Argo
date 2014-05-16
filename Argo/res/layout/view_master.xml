@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/drawer_width"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#252525" >
+
+        <ProgressBar
+            android:id="@+id/pb_for_empty_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="gone" />
+
+        <GridView
+            android:id="@+id/fav_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:horizontalSpacing="@dimen/fav_horizontal_spacing"
+            android:numColumns="2"
+            android:verticalSpacing="@dimen/fav_vertical_spacing" >
+        </GridView>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/top10"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onSwitch"
+            android:text="@string/btn_top10"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/mail"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onSwitch"
+            android:text="@string/mail"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/alls"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onSwitch"
+            android:text="@string/all_boards"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+</LinearLayout>
