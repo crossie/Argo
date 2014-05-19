@@ -8,7 +8,8 @@
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -16,13 +17,28 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.sysu.bbs.argo.MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.sysu.bbs.argo.TopicListActivity"
+            android:label="@string/activity_title_topiclist" >
+        </activity>
+        <activity
+            android:name="com.sysu.bbs.argo.AddPostActivity"
+            android:label="@string/add_new_post"
+            android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="adjustResize" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+        <service android:name="com.sysu.bbs.argo.util.PostService" />
     </application>
 
 </manifest>

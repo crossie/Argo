@@ -1,24 +1,8 @@
 package com.sysu.bbs.argo.api;
 
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
-
-import com.android.volley.Request.Method;
-import com.android.volley.AuthFailureError;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response.Listener;
-import com.android.volley.toolbox.RequestFuture;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 public final class API {
 	private final static String entry = "http://bbs.sysu.edu.cn";
@@ -61,36 +45,5 @@ public final class API {
 		public static final String AJAX_POST_ADD = entry + "/ajax/post/add/";
 		public static final String AJAX_POST_DEL = entry + "/ajax/post/del/";
 		public static final String AJAX_MAIL_SEND = entry + "/ajax/mail/send/";
-	}
-	
-	JSONObject result;
-	
-	public JSONObject losgin() {
-		CookieManager cm = new CookieManager();
-		cm.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-		CookieHandler.setDefault(cm);
-		//TODO: mind the network status here		
-		//TODO: should share RequestQueue within this class ?
-		RequestQueue requestQueue = Volley.newRequestQueue(context);
-		RequestFuture<String> future = RequestFuture.newFuture();
-		requestQueue.add(new StringRequest(Method.POST, POST.AJAX_LOGIN, future, future){
-			@Override
-			protected Map<String, String> getParams() throws AuthFailureError {
-				return param;
-			}
-		});
-		
-		try {
-			result = new JSONObject(future.get());
-		} catch (JSONException e) {
-			result = null;
-		} catch (InterruptedException e) {
-			result = null;
-		} catch (ExecutionException e) {
-			result = null;
-		}
-		
-		
-		return result;
 	}
 }

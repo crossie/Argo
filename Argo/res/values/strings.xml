@@ -11,7 +11,29 @@
     <string name="btn_top10">十大</string>
     <string name="mail">站内信</string>
     <string name="all_boards">分区</string>
-    
     <string name="actionbar_title_top10">今日十大</string>
+    <string name="actionbar_title_mail">站内信</string>
+    <string name="actionbar_title_alls">全部版面</string>
+    <string name="btn_load_earlier">点击加载更早的帖子</string>
+    <string name="btn_load_latest">点击加载最新的帖子</string>
+    <string name="activity_title_topiclist">同主题阅读</string>
+    <string name="add_new_post">发表新帖</string>
+    <string name="login_title">请输入用户信息</string>
+
+  
+        <string name="view_mode_normal">帖子</string>
+        <string name="view_mode_topic">主题</string>
+        <string name="view_mode_digest">文摘</string>
+        <string name="view_mode_best">精华</string>
+        
+  
+    <string-array name="right_draw_items">
+        <item>更新</item>
+        <item>关于</item>
+        <item>注销</item>
+    </string-array>
+    
+    <string name="menu_title_copy">复制内容和链接</string>
+    <string name="menu_title_topic">同主题阅读</string>
 
 </resources>

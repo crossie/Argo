@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="fav_item_backgroud">#C4C4C4</color>
+    <color name="fav_item_normal_backgroud">#353535</color>
+    <color name="fav_item_pressed_backgroud">#888888</color>
     <color name="fav_item_border">#FFFFFF</color>
+    
+    <color name="add_comment_normal_backgroud">#FFFFFFFF</color>
+    <color name="add_comment_pressed_backgroud">#AA888888</color>
+    
+    <color name="list_item_pressed_background">#888888</color>
 </resources>

@@ -2,32 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:background="@drawable/fav_item_state_list"
     android:orientation="vertical"
-    android:background="#353535"
-    android:paddingTop="@dimen/fav_item_padding"
     android:paddingBottom="@dimen/fav_item_padding"
     android:paddingLeft="10dp"
-    android:layout_gravity="center" >
-
-    <TextView
-        android:id="@+id/name_en"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/fav_item_large"
-        android:textColor="#FFFFFF"
-        android:text="placeholder"
-        android:singleLine="true"
-       />
+    android:paddingTop="@dimen/fav_item_padding" >
 
     <TextView
         android:id="@+id/name_cn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ellipsize="middle"
-        android:textSize="@dimen/fav_item_small"
-        android:textColor="#CCCCCC"
         android:singleLine="true"
         android:text="placeholder"
-         />
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/fav_item_large"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/name_en"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:text="placeholder"
+        android:textColor="#D6B930"
+        android:textSize="@dimen/fav_item_small" />
 
 </LinearLayout>

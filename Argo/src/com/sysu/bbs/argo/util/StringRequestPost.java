@@ -12,17 +12,16 @@ public class StringRequestPost extends StringRequest {
 
 	HashMap<String, String> param;
 	
-	public StringRequestPost(int method, String url, Listener<String> listener,
+	public StringRequestPost(String url, Listener<String> listener,
 			ErrorListener errorListener,HashMap<String, String> param) {		
-		super(method, url, listener, errorListener);
+		super(Method.POST, url, listener, errorListener);
 		this.param = param;
 	}
-	public StringRequestPost(int method, String url, Listener<String> listener){
-		this(method, url, listener, null, null);
+	public StringRequestPost(String url, Listener<String> listener){
+		this(url, listener, null, null);
 	}
 	@Override
 	protected Map<String, String> getParams() throws AuthFailureError {
-		// TODO Auto-generated method stub
 		return param;
 	}
 
