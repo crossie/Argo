@@ -34,7 +34,7 @@ public class FavGridAdapter extends ArrayAdapter<Board> {
 		FavHolder holder = null;
 		if (tmp == null) {
 			tmp = LayoutInflater.from(this.getContext()).inflate(
-					R.layout.item_favorite, parent, false);
+					R.layout.item_board_child, parent, false);
 			TextView nameEn = (TextView) tmp.findViewById(R.id.name_en);
 			TextView nameCn = (TextView) tmp.findViewById(R.id.name_cn);
 			holder = new FavHolder(nameEn, nameCn);

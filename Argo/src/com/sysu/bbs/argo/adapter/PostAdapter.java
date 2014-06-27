@@ -1,9 +1,12 @@
 package com.sysu.bbs.argo.adapter;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,45 +23,49 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
 import com.android.volley.Request.Method;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response.Listener;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.sysu.bbs.argo.AddPostActivity;
-import com.sysu.bbs.argo.MainActivity;
 import com.sysu.bbs.argo.R;
-import com.sysu.bbs.argo.TopicListActivity;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
+import com.sysu.bbs.argo.util.SimpleErrorListener;
 
-public class PostAdapter extends ArrayAdapter<Post> implements OnClickListener {
+public class PostAdapter extends ArrayAdapter<String> implements OnClickListener {
 
-	Context context;
-	ArrayList<Post> postList;
-	// HashMap<PostHead, Post> post = new HashMap<PostHead, Post>();
-	RequestQueue requestQueue;
-	static View pbEmpty = null;
+	private HashMap<String, Post> mPostMap;
+	//how to initialize board name ?
+	private String mBoardName;
+	private RequestQueue mRequestQueue;
 
-	public PostAdapter(Context con, int resource, List<Post> objects) {
+
+	public PostAdapter(Context con, int resource, List<String> objects, String boardname) {
 		super(con, resource, objects);
-		context = con;
-		postList = (ArrayList<Post>) objects;
-		requestQueue = Volley.newRequestQueue(context);
-
+		mPostMap = new HashMap<String, Post>();
+		mBoardName = boardname;
+		mRequestQueue = Volley.newRequestQueue(getContext());
 	}
 
 	private class PostViewHolder {
 		TextView tvUserid;
 		TextView tvTitle;
+		TextView tvPosttime;
 		TextView tvContent;
 		TextView tvQuote;
 		ImageButton btnReply;
+		Request<String> request;
+		int position;
 
-		PostViewHolder(TextView userid, TextView title, TextView content,
+		PostViewHolder(TextView userid, TextView title, TextView posttime, TextView content,
 				TextView quote, ImageButton reply) {
 			tvUserid = userid;
 			tvTitle = title;
+			tvPosttime = posttime;
 			tvContent = content;
 			tvQuote = quote;
 			btnReply = reply;
@@ -69,61 +76,147 @@ public class PostAdapter extends ArrayAdapter<Post> implements OnClickListener {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 
-		Post post = postList.get(position);
-
 		View tmp = convertView;
 		PostViewHolder holder = null;
 		if (tmp == null) {
-			tmp = LayoutInflater.from(context).inflate(R.layout.item_post,
+			tmp = LayoutInflater.from(getContext()).inflate(R.layout.item_post,
 					parent, false);
 			TextView tvUserid = (TextView) tmp.findViewById(R.id.post_userid);
 			TextView tvTitle = (TextView) tmp.findViewById(R.id.post_title);
+			TextView tvPosttime = (TextView) tmp.findViewById(R.id.post_time);
 			TextView tvContent = (TextView) tmp.findViewById(R.id.post_content);
 			TextView tvQuote = (TextView) tmp.findViewById(R.id.post_quote);
 			ImageButton btnReply = (ImageButton) tmp
 					.findViewById(R.id.add_comment);
 
 			tvQuote.setOnClickListener(this);
+			tvQuote.setVisibility(View.GONE);
 			tvContent.setOnClickListener(this);
 			btnReply.setOnClickListener(this);
+			btnReply.setVisibility(View.GONE);
 
-			holder = new PostViewHolder(tvUserid, tvTitle, tvContent, tvQuote,
+			holder = new PostViewHolder(tvUserid, tvTitle, tvPosttime, tvContent, tvQuote,
 					btnReply);
 
 			tmp.setTag(holder);
 		} else {
 			holder = (PostViewHolder) tmp.getTag();
+			//reset holder status to loading...
+			setupHolder(holder, null);
 		}
-		String content = post.getParsedContent();
-		holder.tvContent.setText(content);
-		holder.tvContent.setTag(post);
 		
-		holder.tvTitle.setText(post.getTitle());
-		holder.tvUserid.setText(post.getUserid());
-		holder.btnReply.setTag(Integer.valueOf(position));
-
-		if (post.getParsedQuote() != null && !post.getParsedQuote().equals("")) {
-			holder.tvQuote.setVisibility(View.VISIBLE);
-			holder.tvQuote.setText(post.getParsedQuote());
-		} else
-			holder.tvQuote.setVisibility(View.GONE);
-
+		holder.position = position;
+		
+		String filename = getItem(position);
+		if (mPostMap.containsKey(filename)) {
+			Post post = mPostMap.get(filename);
+			if (post != null && post.getBoard().equals(mBoardName)) {				
+				setupHolder(holder, post);
+				return tmp;
+			} 
+		} else {
+			getPost(holder);
+		}
+		
 		return tmp;
 
 	}
+	
+	private void getPost(final PostViewHolder holder) {
+		if (holder.request != null) 
+			holder.request.cancel();
+		String url = API.GET.AJAX_POST_GET + "?boardname="
+				+ mBoardName + "&filename="
+				+ getItem(holder.position);
+		holder.request = new StringRequest(Method.GET, url,
+				new Listener<String>() {
 
-	public void getPostResponse(String response) {
+					@Override
+					public void onResponse(String response) {
+						postResponse(holder, response);
+					}
+			
+				},
+				new SimpleErrorListener(getContext(), null) {
+					@Override
+					public void onErrorResponse(VolleyError error) {
+						holder.btnReply.setImageResource(R.drawable.ic_action_refresh);
+						holder.btnReply.setVisibility(View.VISIBLE);
+						holder.tvContent.setText(R.string.load_failure);
+						holder.request = null;
+						super.onErrorResponse(error);
+					}
+				});
+		mRequestQueue.add(holder.request);
+	}
+	
+	private void setupHolder(PostViewHolder holder, Post post) {
+		if (post != null) {
+			String content = post.getParsedContent();
+			holder.tvContent.setText(content);
+			holder.tvContent.setTag(post);
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("ddMMM HH:mm   ", Locale.US);
+			Calendar update = Calendar.getInstance();
+			update.setTimeInMillis(1000*Long.valueOf(post.getPost_time()));
+			Date date = update.getTime();
+			
+			holder.tvTitle.setText(post.getTitle());
+			holder.tvPosttime.setText(sdf.format(date));
+			holder.tvUserid.setText(post.getUserid() +
+					"(" + post.getUsername() + ")");
+			holder.btnReply.setTag(post);
+			holder.btnReply.setImageResource(R.drawable.ic_action_chat);
+			holder.btnReply.setVisibility(View.VISIBLE);
+	
+			if (post.getParsedQuote() != null && !post.getParsedQuote().equals("")) {
+				holder.tvQuote.setVisibility(View.VISIBLE);
+				holder.tvQuote.setText(post.getParsedQuote());
+			} else
+				holder.tvQuote.setVisibility(View.GONE);
+			
+			holder.request = null;
+		} else {
+			holder.tvContent.setText(R.string.loading);
+			holder.tvContent.setTag(null);		
+			holder.tvTitle.setText("");
+			holder.tvUserid.setText("");
+			holder.btnReply.setTag(null); 
+			holder.btnReply.setVisibility(View.GONE);
+			holder.tvQuote.setVisibility(View.GONE);
+		}
+	}
 
+	private void postResponse(PostViewHolder holder, String response) {
+		try {
+			JSONObject res = new JSONObject(response);
+			if (res.getString("success").equals("1")) {
+				JSONObject postObject = res
+						.getJSONObject("data");
+				Post post = new Post(postObject);
+				setupHolder(holder, post);
+				mPostMap.put(post.getFilename(), post);
+			}
+		} catch(JSONException e) {
+			Toast.makeText(getContext(),
+					"unexpected error in getting post",
+					Toast.LENGTH_LONG).show();
+		}
 	}
 
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.add_comment:
-			Integer tag = (Integer) v.getTag();
-			int pos = tag.intValue();
-			Post post = postList.get(pos);
-			reply(post);
+			Post post = (Post) v.getTag();
+			if (post != null)
+				reply(post);
+			else {
+				View parent = (View) v.getParent().getParent();
+				PostViewHolder holder = (PostViewHolder) parent.getTag();
+				setupHolder(holder, null);
+				getPost(holder);
+			}
 			break;
 		case R.id.post_quote:
 			TextView textview = (TextView) v;
@@ -136,56 +229,18 @@ public class PostAdapter extends ArrayAdapter<Post> implements OnClickListener {
 			}
 			break;
 		case R.id.post_content:
-			final Post holder = (Post) v.getTag();
+/*			final Post holder = (Post) v.getTag();
 			if ( ! (context instanceof MainActivity))
 				return;
 			MainActivity mainActivity = (MainActivity) context;
 			RequestQueue requestQueue = mainActivity.getRequestQueue();
-			String url = API.GET.AJAX_POST_TOPICLIST + "?boardname="
-					+ holder.getBoard() + "&filename=" + holder.getFilename();
-			requestQueue.add(new StringRequest(Method.GET, url,
-					new Listener<String>() {
-
-						@Override
-						public void onResponse(String response) {
-							try {
-								JSONObject res = new JSONObject(response);
-								if (res.getString("success").equals("1")) {
-									JSONArray resArray = res.getJSONArray("data");
-									String[] filenames = new String[resArray
-											.length()];
-									for (int i = 0; i < resArray.length(); i++)
-										filenames[i] = resArray.getString(i);
-
-									Intent intent = new Intent(context,
-											TopicListActivity.class);
-									intent.putExtra("boardname", holder.getBoard());
-									intent.putExtra("filenames", filenames);
-
-									context.startActivity(intent);
-
-								} else {
-									Toast.makeText(
-											context,
-											"failed to get post, "
-													+ res.getString("error"),
-											Toast.LENGTH_SHORT).show();
-								}
-							} catch (JSONException e) {
-								Toast.makeText(context,
-										"unexpected error in getting post",
-										Toast.LENGTH_SHORT).show();
-							}
-
-						}
-
-					}, null));
+			*/
 			break;
 		}
 	}
 
 	private void reply(Post post) {
-		Intent intent = new Intent(context, AddPostActivity.class);
+		Intent intent = new Intent(getContext(), AddPostActivity.class);
 		Bundle param = new Bundle();
 		param.putString("type", "reply");
 		param.putString("boardname", post.getBoard());
@@ -197,7 +252,15 @@ public class PostAdapter extends ArrayAdapter<Post> implements OnClickListener {
 
 		intent.putExtras(param);
 
-		context.startActivity(intent);
+		getContext().startActivity(intent);
+	}
+
+	public String getBoardName() {
+		return mBoardName;
+	}
+
+	public void setBoardName(String boardName) {
+		this.mBoardName = boardName;
 	}
 }
 

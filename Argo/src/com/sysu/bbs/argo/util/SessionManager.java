@@ -52,12 +52,12 @@ public class SessionManager implements Listener<String> {
 		cm.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 		CookieHandler.setDefault(cm);
 
-		requestQueue.add(new StringRequestPost(API.POST.AJAX_LOGIN, this, new SimpleErrorListener(mContext),
+		requestQueue.add(new StringRequestPost(API.POST.AJAX_LOGIN, this, new SimpleErrorListener(mContext,""),
 				param));
 	}
 
 	public interface LoginSuccessListener {
-		public void actionAfterLogin();
+		public void actionAfterLogin(String userid);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class SessionManager implements Listener<String> {
 				SessionManager.isLoggedIn = true;
 
 				for (LoginSuccessListener listener : loginSuccessListeners)
-					listener.actionAfterLogin();
+					listener.actionAfterLogin(mUsername);
 
 				if (isSaveUser) {
 					// TODO: save user name to database

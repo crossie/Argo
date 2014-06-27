@@ -9,7 +9,7 @@ public class Top10 {
 	String filename;
 	String author;
 	int num;
-	Date time;
+	String time;
 	String title;
 	String board;
 	
@@ -17,7 +17,7 @@ public class Top10 {
 		filename = json.getString("filename");
 		author = json.getString("author");
 		num = Integer.parseInt(json.getString("num").trim());
-		time = new Date(Long.parseLong(json.getString("time").toString()));
+		time = json.getString("time");
 		title = json.getString("title");
 		board = json.getString("board");
 	}
@@ -46,11 +46,11 @@ public class Top10 {
 		this.num = num;
 	}
 
-	public Date getTime() {
+	public String getTime() {
 		return time;
 	}
 
-	public void setTime(Date time) {
+	public void setTime(String time) {
 		this.time = time;
 	}
 

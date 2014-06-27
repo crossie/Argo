@@ -1,7 +1,9 @@
 package com.sysu.bbs.argo.util;
 
-import java.util.regex.*;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class Splitter {
 	private static final Pattern DEFAULT_PATTERN = Pattern.compile("\\s+");

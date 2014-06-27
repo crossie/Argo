@@ -21,19 +21,30 @@
     <string name="login_title">请输入用户信息</string>
 
   
-        <string name="view_mode_normal">帖子</string>
-        <string name="view_mode_topic">主题</string>
-        <string name="view_mode_digest">文摘</string>
-        <string name="view_mode_best">精华</string>
-        
+    <string name="view_mode_normal">帖子模式</string>
+    <string name="view_mode_topic">主题模式</string>
+    <string name="view_mode_digest">文摘</string>
+    <string name="view_mode_best">精华</string>
+    <string name="add_new_topic">发表新帖</string>
+    <string name="add_to_favorite">添加收藏</string>
+    <string name="delete_from_favorite">取消收藏</string>
+    <string name="chronologically_desc">按时间降序</string>
+    <string name="chronologically_asec">按时间升序</string>
+    
   
-    <string-array name="right_draw_items">
+    <string-array name="right_menu_items">
         <item>更新</item>
         <item>关于</item>
-        <item>注销</item>
+        <item>登录</item>
     </string-array>
     
     <string name="menu_title_copy">复制内容和链接</string>
     <string name="menu_title_topic">同主题阅读</string>
+    
+    <string name="loading">加载中</string>
+    <string name="load_failure">网络错误，加载失败</string>
+    <string name="load_cancelled">加载已取消</string>
+    
+    <string name="search_hint">搜索版面</string>
 
 </resources>

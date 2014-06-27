@@ -6,11 +6,12 @@
     <dimen name="floating_button_bottom_margin">30dp</dimen>
     
     <dimen name="left_drawer_padding">5dp</dimen>
-    <dimen name="fav_item_padding">5dp</dimen>
+    <dimen name="fav_item_padding">10dp</dimen>
     <dimen name="fav_horizontal_spacing">1dp</dimen>
     <dimen name="fav_vertical_spacing">1dp</dimen>
-    <dimen name="drawer_width">240dp</dimen>
-    <dimen name="fav_item_large">14sp</dimen>
+    <dimen name="menu_offset">100dp</dimen>
+    <dimen name="shadow_width">15dp</dimen>
+    <dimen name="fav_item_large">20sp</dimen>
     <dimen name="fav_item_small">12sp</dimen>
 
 </resources>

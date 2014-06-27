@@ -1,31 +1,48 @@
 package com.sysu.bbs.argo;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Intent;
+import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SlidingPaneLayout;
+import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
-import android.widget.GridView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
+import android.widget.AutoCompleteTextView;
+import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.ExpandableListView.OnGroupExpandListener;
+import android.widget.LinearLayout;
+import android.widget.SimpleAdapter;
+import android.widget.SimpleExpandableListAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request.Method;
@@ -34,483 +51,180 @@ import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.sysu.bbs.argo.adapter.FavGridAdapter;
-import com.sysu.bbs.argo.adapter.PostAdapter;
-import com.sysu.bbs.argo.adapter.PostHeadAdapter;
-import com.sysu.bbs.argo.adapter.Top10Adapter;
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshExpandableListView;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Board;
-import com.sysu.bbs.argo.api.dao.Post;
-import com.sysu.bbs.argo.api.dao.PostHead;
-import com.sysu.bbs.argo.api.dao.Top10;
+import com.sysu.bbs.argo.api.dao.Section;
 import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SessionManager.LoginSuccessListener;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
-import com.sysu.bbs.argo.view.LoginDialog;
-import com.sysu.bbs.argo.view.LoginDialog.Communicator;
-import com.sysu.bbs.argo.view.LoginPost;
+import com.sysu.bbs.argo.view.BaseBoardFragment;
+import com.sysu.bbs.argo.view.BoardFragment;
+import com.sysu.bbs.argo.view.Top10Fragment;
 
-public class MainActivity extends FragmentActivity implements
-		OnItemClickListener, LoginSuccessListener, Communicator,
-		OnScrollListener {
+public class MainActivity extends FragmentActivity 
+	implements OnChildClickListener, LoginSuccessListener, 
+		OnRefreshListener<ExpandableListView>,OnGroupExpandListener, OnItemClickListener {
 
-	RequestQueue requestQueue;
-
-	DrawerLayout rightDrawer;
-	SlidingPaneLayout lefSlidingPane;
-
-	ListView detailView = null;
-	Top10Adapter top10Adapter;
-	ArrayList<Top10> top10List;
-
-	GridView favGrid;
-	FavGridAdapter favAdapter;
-	ArrayList<Board> favList;
-
-	PostAdapter postAdapter;
-	ArrayList<Post> postList;
-	ArrayList<PostHead> postHeadListNormal;
-
-	PostHeadAdapter postHeadAdapter;
-	ArrayList<PostHead> postHeadListTopic;
-
-	ArrayList<PostHead> currPostHeadList;
-	ArrayAdapter<?> currAdapter;
-
-	String currMode = "normal";
-	String currBoard;
-	int firstIndexNormal, lastIndexNormal;
-	int firstIndexTopic, lastIndexTopic;
-	int currFirstIndex, currLastIndex;
-
-	// TODO can auto load when approaching top or bottom ?
-	FrameLayout headerWrapper, footerWrapper;
-	View header, footer, empty;
-
-	// boolean isLoginPreInitialized = false;
-	boolean isLoginPostInitialized = false;
-	// boolean isFavInitialized = false;
-	// boolean isSectionInitialized = false;
-
-	LoginDialog loginPre;
-
-	LoginPost loginPost;
-
+	//private ArgoSQLOpenHelper mDBHelper;// = new ArgoSQLOpenHelper(MainActivity.this, "argodb", null, 1);
+	//private SQLiteDatabase db;// = mDBHelper.getWritableDatabase();
+	
+	private RequestQueue mRequestQueue = null;
+	
+	private BoardFragment mBoardFragment = null;
+	private Top10Fragment mTop10Fragment = null;
+	private Fragment mCurrFragment = null;
+	
+	private SlidingMenu mSlidingMenu;
+	//private SearchView mSearchBoard;
+	private AutoCompleteTextView mSearchBoard;
+	private PullToRefreshExpandableListView mBoardListView;
+	private List<Map<String,String>> mSectionGroupList = new ArrayList<Map<String,String>>();
+	private List<Map<String,String>> mFavList = new ArrayList<Map<String,String>>();
+	private List<List<Map<String,String>>> mBoardList = new ArrayList<List<Map<String,String>>>();
+	private List<Map<String,String>> mSearchList = new ArrayList<Map<String,String>>();
+	private SimpleExpandableListAdapter mBoardAdapter;
+	private SimpleAdapter mSearchAdapter;
+	
+	private LinearLayout mHeader;
+	
+	private final String EN = "EN";
+	private final String CN = "CN";
+	private final String SECCODE = "SECCODE";
+	private final String SECNAME = "SECNAME";
+	private String mCurrBoard;
+	
+	private String mUserid = null;
+	private boolean isFavoriteInitialized = false;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		requestQueue = Volley.newRequestQueue(this);
-
 		if (!SessionManager.loginSuccessListeners.contains(this))
 			SessionManager.loginSuccessListeners.add(this);
+		
+		mSlidingMenu = new SlidingMenu(this);
+		mSlidingMenu.setMenu(R.layout.sliding_menu_left);
+		mSlidingMenu.setSecondaryMenu(R.layout.sliding_menu_right);
+		mSlidingMenu.setMode(SlidingMenu.LEFT_RIGHT);
+		mSlidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+		mSlidingMenu.setShadowDrawable(R.drawable.shadow);
+		mSlidingMenu.setShadowWidthRes(R.dimen.shadow_width);
+		mSlidingMenu.setSecondaryShadowDrawable(R.drawable.shadowright);
+		mSlidingMenu.setBehindOffsetRes(R.dimen.menu_offset);
+		mSlidingMenu.attachToActivity(this, SlidingMenu.SLIDING_CONTENT);
+		
+		//mSearchBoard = (SearchView) findViewById(R.id.menu_left_search);
+		//SearchManager searchManager =
+		//           (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+		//mSearchBoard.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+		//mSearchBoard.setOnSuggestionListener(this);
+		mSearchBoard = (AutoCompleteTextView) findViewById(R.id.menu_left_search);
+		mSearchAdapter = new SimpleAdapter(this, mSearchList, 
+				android.R.layout.simple_expandable_list_item_2, new String[]{EN, CN}, 
+				new int[]{android.R.id.text1, android.R.id.text2});
+		mSearchBoard.setAdapter(mSearchAdapter);
+		mSearchBoard.setOnItemClickListener(this);
+		
+		mBoardListView = (PullToRefreshExpandableListView) mSlidingMenu.getMenu().findViewById(R.id.menu_left_list);
+		mBoardAdapter = new SimpleExpandableListAdapter(this, 
+				mSectionGroupList, android.R.layout.simple_expandable_list_item_1,
+				new String[] { SECNAME }, 
+				new int[] { android.R.id.text1 }, 
+				mBoardList, android.R.layout.simple_expandable_list_item_2, 
+				new String[] { EN, CN}, 
+				new int[] { android.R.id.text1, android.R.id.text2});
 
-		loginPre = new LoginDialog();
-		loginPost = new LoginPost();
-
-		rightDrawer = (DrawerLayout) findViewById(R.id.main_layout);
-
-		FragmentManager fm = getSupportFragmentManager();
-		FragmentTransaction ft = fm.beginTransaction();
-		ft.add(R.id.right_drawer, loginPre, "LoginPre");
-		ft.commit();
-
-		lefSlidingPane = (SlidingPaneLayout) findViewById(R.id.left_sliding_pane);
-
-		headerWrapper = new FrameLayout(this);
-		footerWrapper = new FrameLayout(this);
-		empty = findViewById(R.id.pb_for_empty_list);
-
-		detailView = (ListView) findViewById(R.id.detail_list);
-		detailView.setOnItemClickListener(this);
-		// registerForContextMenu(detailView);
-
-		header = getLayoutInflater().inflate(R.layout.view_detail_header, null);
-		footer = getLayoutInflater().inflate(R.layout.view_detail_footer, null);
-
-		// headerWrapper.addView(header);
-		// footerWrapper.addView(footer);
-		detailView.addHeaderView(headerWrapper);
-		detailView.addFooterView(footerWrapper);
-		// detailView.setEmptyView(empty);
-		detailView.setOnScrollListener(this);
-
-		top10List = new ArrayList<Top10>();
-		top10Adapter = new Top10Adapter(this, R.id.name_cn, top10List);
-
-		postList = new ArrayList<Post>();
-		postHeadListNormal = new ArrayList<PostHead>();
-		postAdapter = new PostAdapter(this, R.id.name_cn, postList);
-
-		postHeadListTopic = new ArrayList<PostHead>();
-		postHeadAdapter = new PostHeadAdapter(this, R.id.name_cn,
-				postHeadListTopic);
-
-		changeBoard("top10");
-	}
-
-	public void onSwitch(View view) {
-		switch (view.getId()) {
-		case R.id.mail:
-			changeBoard("mail");
-			break;
-		case R.id.top10:
-			changeBoard("top10");
-			break;
-		}
-	}
-
-	public void handyButtonClick(View view) {
-		switch (view.getId()) {
-		case R.id.new_post:
-			Intent intent = new Intent(this, AddPostActivity.class);
-			Bundle param = new Bundle();
-			param.putString("type", "new");
-			param.putString("boardname", currBoard);
-
-			intent.putExtras(param);
-
-			startActivity(intent);
-			break;
-		case R.id.refresh:
-
-			String url = API.GET.AJAX_POST_LIST + "?";
-			url += "type=" + currMode + "&boardname=" + currBoard + "&start="
-					+ (currLastIndex + 1);
-			// TODO use lastIndexNormal or firstIndexNormal based on bottom or
-			// top
-			footerWrapper.addView(new ProgressBar(this, null,
-					android.R.attr.progressBarStyleSmall));
-			requestQueue.add(new StringRequest(Method.GET, url,
-					new Listener<String>() {
-
-						@Override
-						public void onResponse(String response) {
-							postResponse(response, 2);
-							footerWrapper.removeAllViews();
-						}
-					}, new SimpleErrorListener(this) {
-						@Override
-						public void onErrorResponse(VolleyError error) {
-							footerWrapper.removeAllViews();
-							super.onErrorResponse(error);
-						}
-					}));
-			break;
-
-		}
-	}
-
-	public void initFav() {
-		favGrid = (GridView) findViewById(R.id.fav_grid);
-		favList = new ArrayList<Board>();
-		favAdapter = new FavGridAdapter(this, R.id.name_cn, favList);
-		favGrid.setAdapter(favAdapter);
-		favGrid.setEmptyView(findViewById(R.id.pb_for_empty_list));
-		favGrid.setOnItemClickListener(this);
-
-		boolean isFavInDatabase = false;
-		if (isFavInDatabase) {
-			// TODO: get favorites from database
+		TextView top10Header = (TextView) getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
+		top10Header.setText("今日十大");
+		
+		mHeader = new LinearLayout(this);
+		mHeader.setOrientation(LinearLayout.VERTICAL);
+		mHeader.addView(top10Header);
+		
+		mBoardListView.getRefreshableView().addHeaderView(mHeader);
+		
+		
+		mBoardListView.getRefreshableView().setAdapter(mBoardAdapter);
+		mBoardListView.setOnRefreshListener(this);
+		mBoardListView.getRefreshableView().setOnChildClickListener(this);
+		
+		
+		
+		Map<String,String> favMap = new HashMap<String,String>();
+		favMap.put(SECNAME, "收藏夹");
+		mSectionGroupList.add(favMap);
+		mBoardList.add(mFavList);
+		
+		File sections = new File(getFilesDir(), "sections.json");
+		FileInputStream fis = null;
+		BufferedReader br = null;
+		if (sections.exists()) {
+			try {
+				fis = new FileInputStream(sections);
+				br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+				String s = "", line;
+				while ((line = br.readLine()) != null)
+					s += line;
+				Log.d("onCreate", s);
+				initSections(s);
+			} catch (FileNotFoundException e) {
+				refreshSection();
+			} catch (IOException e) {
+				refreshSection();
+			} finally {
+				if (br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						
+					}
+				}
+			}
+			
 		} else {
-			requestQueue.add(new StringRequest(Method.GET,
-					API.GET.AJAX_USER_FAV, new Listener<String>() {
-
-						@Override
-						public void onResponse(String response) {
-							favResponse(response);
-						}
-
-					}, new SimpleErrorListener(this)));
+			refreshSection();
 		}
+				
+		
+/*		move to session manager
+		cursor = db.rawQuery("select * from user_info order by last_login desc;", null);
+		while (cursor.moveToNext()) {
+			String userid = cursor.getString(1);
+			String passwd = cursor.getString(2);
+			SessionManager sm = new SessionManager(this, userid, passwd,
+					false, false);
+			sm.login();
+			break;
+		}*/
+
+		//db.close();
+		
+		mTop10Fragment = new Top10Fragment();
+		getSupportFragmentManager().beginTransaction()
+			.add(R.id.main_layout, mTop10Fragment).commit();
+		mCurrFragment = mTop10Fragment;
 	}
 
-	public void changeBoard(final String board) {
-
-		currBoard = board;
-
-		if (board.equals("top10")) {
-			headerWrapper.removeAllViews();
-			footerWrapper.removeAllViews();
-			requestQueue.add(new StringRequestPost(API.GET.AJAX_COMM_TOPTEN,
-					new Listener<String>() {
-
-						@Override
-						public void onResponse(String response) {
-
-							top10Response(response);
-
-						}
-
-					}, new SimpleErrorListener(this), null));
-
-		} else if (board.equals("mail")) {
-
-		} else {
-			getActionBar().setTitle(board);
-
-			String url = API.GET.AJAX_POST_LIST + "?";
-			url += "type=normal&boardname=" + board;
-
-			if (detailView.getAdapter() != postAdapter) {
-				detailView.setAdapter(postAdapter);
-			}
-			postList.clear();
-			postAdapter.notifyDataSetChanged();
-
-			currPostHeadList = postHeadListNormal;
-			currFirstIndex = firstIndexNormal;
-			currLastIndex = lastIndexNormal;
-
-			postHeadListNormal.clear();
-			postHeadListTopic.clear();
-
-			sendGetPostRequest(url);
-
-		}
-	}
-
-	private void sendGetPostRequest(String url) {
-		headerWrapper.addView(new ProgressBar(this, null,
-				android.R.attr.progressBarStyleSmall));
-
-		requestQueue.add(new StringRequest(Method.GET, url,
-				new Listener<String>() {
-
-					@Override
-					public void onResponse(String response) {
-
-						postResponse(response, 3);
-					}
-				}, new SimpleErrorListener(this) {
-					@Override
-					public void onErrorResponse(VolleyError error) {
-						headerWrapper.removeAllViews();
-						super.onErrorResponse(error);
-					}
-				}));
-	}
-
-	public void postResponse(String response, int where) {
-
-		try {
-			JSONObject result = new JSONObject(response);
-			if (result.getString("success").equals("1")) {
-				JSONArray postHeadArray = result.getJSONArray("data");
-				if (where >= 2) { // refresh at bottom or from change board
-					for (int index = 0; index < postHeadArray.length(); index++) {
-						PostHead postHead = new PostHead(
-								postHeadArray.getJSONObject(index));
-						postHead.setBoardname(currBoard);
-						currPostHeadList.add(postHead);
-					}
-				} else if (where == 1) { // at top
-					for (int index = postHeadArray.length() - 1; index >= 0; index--) {
-						PostHead postHead = new PostHead(
-								postHeadArray.getJSONObject(index));
-						postHead.setBoardname(currBoard);
-						currPostHeadList.add(0, postHead);
-					}
-				}
-				// TODO update firstIndexNormal and lastIndexNormal
-				int count = currPostHeadList.size();
-				switch (where) {
-				case 1:
-					currFirstIndex = currPostHeadList.get(0).getIndex();
-					if (currMode.equals("normal")) {
-						firstIndexNormal = currFirstIndex;
-						loadPost(0, postHeadArray.length(), where);
-					} else if (currMode.equals("topic")) {
-						firstIndexTopic = currFirstIndex;
-						headerWrapper.removeAllViews();
-						headerWrapper.addView(header);
-						postHeadAdapter.notifyDataSetChanged();
-					}
-					break;
-				case 2:
-
-					currLastIndex = currPostHeadList.get(count - 1).getIndex();
-					if (currMode.equals("normal")) {
-						lastIndexNormal = currLastIndex;
-						loadPost(count - postHeadArray.length(),
-								postHeadArray.length(), where);
-					} else if (currMode.equals("topic")) {
-						lastIndexTopic = currLastIndex;
-						headerWrapper.removeAllViews();
-						headerWrapper.addView(header);
-						postHeadAdapter.notifyDataSetChanged();
-					}
-					break;
-				case 3:
-					currFirstIndex = currPostHeadList.get(0).getIndex();
-					currLastIndex = currPostHeadList.get(count - 1).getIndex();
-
-					firstIndexNormal = currFirstIndex;
-					lastIndexNormal = currFirstIndex;
-					if (currMode.equals("normal")) {
-						loadPost(0, postHeadArray.length(), where);
-					} else if (currMode.equals("topic")) {
-						headerWrapper.removeAllViews();
-						headerWrapper.addView(header);
-						postHeadAdapter.notifyDataSetChanged();
-					}
-					break;
-				default:
-					break;
-				}
-
-			} else {
-				Toast.makeText(this,
-						"failed to get post, " + result.getString("error"),
-						Toast.LENGTH_SHORT).show();
-			}
-		} catch (JSONException e) {
-			Toast.makeText(this, "unexpected error in getting post",
-					Toast.LENGTH_LONG).show();
-		}
-	}
-
-	private void loadPost(final int curr, final int left, final int where) {
-		if (left == 0) {
-			headerWrapper.removeAllViews();
-			headerWrapper.addView(header);
-			postAdapter.notifyDataSetChanged();
-			// detailView.smoothScrollToPositionFromTop(0, 72, 200);
-
-			return;
-		}
-		// TODO should change to get from head or tail
-		PostHead postHead = postHeadListNormal.get(curr);
-		String url = API.GET.AJAX_POST_GET + "?boardname="
-				+ postHead.getBoardname() + "&filename="
-				+ postHead.getFilename();
-
-		requestQueue.add(new StringRequest(Method.GET, url,
-				new Listener<String>() {
-
-					@Override
-					public void onResponse(String response) {
-						try {
-							JSONObject res = new JSONObject(response);
-							if (res.getString("success").equals("1")) {
-								JSONObject postObject = res
-										.getJSONObject("data");
-								Post post = new Post(postObject);
-								if (where > 2) // refresh at bottom or from
-												// changeBoard
-									postList.add(post);
-								else
-									postList.add(0, post);
-
-								// TODO enhance this !! don't call so many
-								// times !!
-								// postAdapter.notifyDataSetChanged();
-
-								loadPost(curr + 1, left - 1, where);
-							} else {
-								Toast.makeText(
-										MainActivity.this,
-										"failed to get post, "
-												+ res.getString("error"),
-										Toast.LENGTH_SHORT).show();
-							}
-						} catch (JSONException e) {
-							Toast.makeText(MainActivity.this,
-									"unexpected error in getting post",
-									Toast.LENGTH_LONG).show();
-						}
-
-					}
-					// TODO how to cope with firstIndex and lastIndex ?
-				}, new SimpleErrorListener(this)));
-
-	}
-
-	public void top10Response(String response) {
-		detailView.setAdapter(top10Adapter);
-		try {
-			JSONObject result = new JSONObject(response);
-			if (result.getString("success").equals("1")) {
-				JSONArray top10Array = result.getJSONArray("data");
-				top10List.clear();
-				for (int i = 0; i < top10Array.length(); i++) {
-					Top10 top10 = new Top10(top10Array.getJSONObject(i));
-					top10List.add(top10);
-				}
-				top10Adapter.notifyDataSetChanged();
-				getActionBar().setTitle("今日十大");
-			} else {
-				Toast.makeText(this,
-						"failed to get top 10, " + result.getString("error"),
-						Toast.LENGTH_SHORT).show();
-			}
-		} catch (JSONException e) {
-			Toast.makeText(this, "unexpected error in getting top 10",
-					Toast.LENGTH_LONG).show();
-		}
-	}
-
-	public void favResponse(String response) {
-		try {
-			JSONObject org = new JSONObject(response);
-			if (org.getString("success").equals("1")) {
-				JSONArray arr = org.getJSONArray("data");
-				favList.clear();
-				for (int i = 0; i < arr.length(); i++) {
-					Board board = new Board(arr.getJSONObject(i));
-					favList.add(board);
-				}
-				favAdapter.notifyDataSetChanged();
-			} else {
-				Toast.makeText(this,
-						"failed to get favorites, " + org.getString("error"),
-						Toast.LENGTH_SHORT).show();
-			}
-		} catch (JSONException e) {
-			Toast.makeText(this, "unexpected error in getting favorites",
-					Toast.LENGTH_LONG).show();
-		}
+	public  RequestQueue getRequestQueue() {
+		if (mRequestQueue == null)
+			mRequestQueue = Volley.newRequestQueue(this);
+		return mRequestQueue;
 	}
 
 	@Override
-	public void onItemClick(AdapterView<?> view, View item, int pos, long row) {
-		if (view == favGrid) {
-			lefSlidingPane.closePane();
-			Board board = favList.get(pos);
-			changeBoard(board.getBoardname());
-		} else if (view == detailView) {
-			view.showContextMenuForChild(item);
-		}
+	public void actionAfterLogin(String userid) {
+		mUserid = userid;
+		refreshFavorite();
 	}
 
-	public RequestQueue getRequestQueue() {
-		return requestQueue;
-	}
-
-	public void setRequestQueue(RequestQueue requestQueue) {
-		this.requestQueue = requestQueue;
-	}
-
-	@Override
-	public void actionAfterLogin() {
-		initFav();
-		if (rightDrawer.isDrawerOpen(Gravity.END))
-			rightDrawer.closeDrawers();
-		if (!isLoginPostInitialized) {
-			FragmentManager fm = getSupportFragmentManager();
-			FragmentTransaction ft = fm.beginTransaction();
-			ft.replace(R.id.right_drawer, loginPost, "LoginPost");
-			ft.commitAllowingStateLoss();
-
-			isLoginPostInitialized = true;
-
-		}
-
-	}
-
-	@Override
+	//@Override
 	public void passParam(String username, String password, boolean saveUser,
 			boolean savePassword) {
 		SessionManager sm = new SessionManager(this, username, password,
@@ -519,42 +233,6 @@ public class MainActivity extends FragmentActivity implements
 
 	}
 
-	@Override
-	public void onScroll(AbsListView list, int firstVisibleItem,
-			int visibleItemCount, int totalItemCount) {
-		if (firstVisibleItem + visibleItemCount < totalItemCount
-				|| currBoard == null || currBoard.equals("top10")
-				|| currBoard.equals("mail"))
-			return;
-
-		// TODO add footer
-	}
-
-	@Override
-	public void onScrollStateChanged(AbsListView arg0, int arg1) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void loadEarlier(View v) {
-		String url = API.GET.AJAX_POST_LIST + "?";
-		url += "type=" + currMode + "&boardname=" + currBoard + "&start="
-				+ (currFirstIndex - 20);
-
-		headerWrapper.removeAllViews();
-		headerWrapper.addView(new ProgressBar(this, null,
-				android.R.attr.progressBarStyleSmall));
-		requestQueue.add(new StringRequest(Method.GET, url,
-				new Listener<String>() {
-
-					@Override
-					public void onResponse(String response) {
-						postResponse(response, 1);
-
-					}
-				}, new SimpleErrorListener(this)));
-
-	}
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
@@ -562,27 +240,366 @@ public class MainActivity extends FragmentActivity implements
 		getMenuInflater().inflate(R.menu.post_popup, menu);
 	}
 
-	/*
-	 * @Override public boolean onCreateOptionsMenu(Menu menu) {
-	 * getMenuInflater().inflate(R.menu.main, menu); return true; }
-	 * 
-	 * @Override public boolean onPrepareOptionsMenu(Menu menu) { //
-	 * getMenuInflater().inflate(R.menu.main, menu); return true; }
-	 * 
-	 * @Override public boolean onOptionsItemSelected(MenuItem item) { switch
-	 * (item.getItemId()) { case R.id.view_mode_normal: if
-	 * (!currMode.equals("normal")) { currMode = "normal"; currPostHeadList =
-	 * postHeadListNormal; currFirstIndex = firstIndexNormal; currLastIndex =
-	 * lastIndexNormal; detailView.setAdapter(postAdapter);
-	 * 
-	 * } break; case R.id.view_mode_topic: if (!currMode.equals("topic")) {
-	 * currMode = "topic"; currPostHeadList = postHeadListTopic; currFirstIndex
-	 * = firstIndexTopic; currLastIndex = lastIndexTopic;
-	 * detailView.setAdapter(postHeadAdapter);
-	 * 
-	 * if (currPostHeadList.size() == 0) { String url = API.GET.AJAX_POST_LIST +
-	 * "?"; url += "type=topic&boardname=" + currBoard;
-	 * headerWrapper.removeAllViews(); sendGetPostRequest(url); } } break; }
-	 * return true; }
-	 */
+	@Override
+	public void onRefresh(PullToRefreshBase<ExpandableListView> refreshView) {
+		
+		String label = DateUtils.formatDateTime(getApplicationContext(), System.currentTimeMillis(),
+				DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_ABBREV_ALL);
+		refreshView.getLoadingLayoutProxy().setLastUpdatedLabel(label);
+
+		refreshSection();
+		if (SessionManager.isLoggedIn)
+			refreshFavorite();
+		//TODO stop refresh and set last update time
+	}
+
+	@Override
+	public void onGroupExpand(int groupPosition) {
+		if (!SessionManager.isLoggedIn || groupPosition != 0 || isFavoriteInitialized)
+			return;
+				
+		File sections = new File(getFilesDir(), mUserid + ".json");
+		FileInputStream fis = null;
+		BufferedReader br = null;
+		if (sections.exists()) {
+			try {
+				fis = new FileInputStream(sections);
+				br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));	
+				String s = "", line;
+				while ((line = br.readLine()) != null)
+					s += line;
+				Log.d("onGroupExpand", s);
+				initFav(s);
+			} catch (FileNotFoundException e) {
+				refreshFavorite();
+			} catch (IOException e) {
+				refreshFavorite();
+			} finally {
+				if (br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						
+					}
+				}
+			}
+			
+		} else {
+			refreshFavorite();
+		}
+		
+	}
+	
+	private Map<String,String> newBoardItem(String en, String cn) {
+		Map<String,String> tmp = new HashMap<String,String>();
+		tmp.put(EN, en);
+		tmp.put(CN, cn);
+		return tmp;
+	}
+	
+	private void refreshFavorite() {
+		
+		getRequestQueue().add(new StringRequest(Method.GET,
+				API.GET.AJAX_USER_FAV, new Listener<String>() {
+					@Override
+					public void onResponse(String response) {
+						FileOutputStream fos = null;
+						BufferedWriter bw = null;
+						try {
+							JSONObject org = new JSONObject(response);
+							if (org.getString("success").equals("1")) {
+
+								mFavList.clear();
+								
+								//initTop10AndMail();
+								JSONArray arr = org.getJSONArray("data");
+								initFav(arr.toString());
+								File file = new File(getFilesDir(), mUserid + ".json");
+								fos = new FileOutputStream(file);
+								bw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
+								bw.write(arr.toString());
+								Log.d("refreshFavorite", arr.toString());
+								
+								mBoardAdapter.notifyDataSetChanged();
+								
+								isFavoriteInitialized = true;
+							}
+						} catch (JSONException e) {
+								Toast.makeText(MainActivity.this, "unexpected error in getting favorites",
+										Toast.LENGTH_LONG).show();
+						} catch (FileNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} finally {
+							mBoardListView.onRefreshComplete();
+							if (bw != null) {
+								try {
+									bw.close();
+								} catch (IOException e) {
+									
+								}
+							}
+						}
+					}
+
+			}, new SimpleErrorListener(this, "网络错误,无法刷新收藏夹") {
+				@Override
+				public void onErrorResponse(VolleyError error) {
+					mBoardListView.onRefreshComplete();
+					super.onErrorResponse(error);
+				}
+			}));
+	}
+	
+	
+	private void refreshSection() {
+		
+		getRequestQueue().add(new StringRequest(Method.GET,
+				API.GET.AJAX_BOARD_ALLS, new Listener<String>() {
+					@Override
+					public void onResponse(String response) {
+						FileOutputStream fos = null;
+						BufferedWriter bw = null;
+						try {
+							JSONObject org = new JSONObject(response);
+							if (org.getString("success").equals("1")) {
+																
+								mBoardList.clear();
+								mSectionGroupList.clear();
+								mSearchList.clear();
+																
+								Map<String,String> favMap = new HashMap<String,String>();
+								favMap.put(SECNAME, "收藏夹");
+								mSectionGroupList.add(favMap);
+								mBoardList.add(mFavList);
+								
+								File file = new File(getFilesDir(), "sections.json");
+								fos = new FileOutputStream(file);
+								bw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
+								
+								JSONArray arr = org.getJSONObject("data").getJSONArray("all");
+								
+								bw.write(arr.toString());
+								Log.d("refreshSection", arr.toString());
+								initSections(arr.toString());
+													
+								mBoardAdapter.notifyDataSetChanged();
+								mSearchAdapter.notifyDataSetChanged();
+							}
+						}catch (JSONException e) {
+							Toast.makeText(MainActivity.this, "unexpected error in getting favorites",
+									Toast.LENGTH_LONG).show();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} finally {
+							if (!SessionManager.isLoggedIn) 
+								mBoardListView.onRefreshComplete();
+							if (bw != null) {
+								try {
+									bw.close();
+								} catch (IOException e) {
+									
+								}
+							}
+						}
+					}
+
+		}, new SimpleErrorListener(this, "网络错误,无法刷新") {
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				if (!SessionManager.isLoggedIn) 
+					mBoardListView.onRefreshComplete();
+				super.onErrorResponse(error);
+			}
+		}));
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_main, menu);
+		if (mCurrFragment instanceof BaseBoardFragment)
+			return true;
+		else
+			return false;
+	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+
+		boolean isFavorite = false;
+		List<Map<String, String>> favoriteList = mBoardList.get(0);
+		for (Map<String, String> item: favoriteList) {
+			Collection<String> favorites = item.values();
+			if (favorites.contains(mCurrBoard)) {
+				isFavorite = true;
+				break;
+			}
+		}
+		MenuItem deleteFavorite = menu.findItem(R.id.delete_from_favorite);
+		MenuItem addToFavorite = menu.findItem(R.id.add_to_favorite);
+		if (isFavorite) {
+			deleteFavorite.setVisible(true);
+			addToFavorite.setVisible(false);
+		} else {
+			deleteFavorite.setVisible(false);
+			addToFavorite.setVisible(true);
+		}
+		
+		if (!SessionManager.isLoggedIn) {
+			deleteFavorite.setVisible(false);
+			addToFavorite.setVisible(false);
+		}
+		return false;
+	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		
+		HashMap<String, String> param = new HashMap<String, String>();
+		param.put("boardname", mCurrBoard);
+		String url = null;
+
+		switch(item.getItemId()) {
+		case R.id.delete_from_favorite:
+			url = API.POST.AJAX_USER_DELFAV;
+			break;
+		case R.id.add_to_favorite:
+			url = API.POST.AJAX_USER_ADDFAV;
+			break;
+		default:
+			return false;
+				
+		}
+		
+		mRequestQueue.add(new StringRequestPost(url, new Listener<String>(){
+
+			@Override
+			public void onResponse(String response) {
+				try {
+					JSONObject res = new JSONObject(response);
+					if (res.getString("success").equals("1")) {
+						Toast.makeText(MainActivity.this, "操作成功",
+								Toast.LENGTH_LONG).show();
+						
+						//List<Map<String, String>> favoriteList = mBoardList.get(0);
+						for (Map<String, String> item: mFavList) {
+							Collection<String> favorites = item.values();
+							if (favorites.contains(mCurrBoard)) {
+								mFavList.remove(item);
+								mBoardAdapter.notifyDataSetChanged();
+								invalidateOptionsMenu();
+								break;
+							}
+						}
+					} else {
+						Toast.makeText(MainActivity.this, "操作失败," + res.getString("error"),
+								Toast.LENGTH_LONG).show();
+					}
+					
+				} catch (JSONException e) {
+					Toast.makeText(MainActivity.this, "unexpected error in modifying favorites",
+							Toast.LENGTH_LONG).show();
+				}
+				
+			}
+			
+		}, new SimpleErrorListener(this, null),param));
+		
+		return false;
+	}
+
+	@Override
+	public boolean onChildClick(ExpandableListView parent, View item, int groupPosition,
+			int childPosition, long id) {
+		
+		TextView en = (TextView) item.findViewById(android.R.id.text1);
+		String boardname = en.getText().toString();
+		
+		changeBoard(boardname);
+		return false;
+	}
+
+	private void changeBoard(String boardname) {
+		mSlidingMenu.showContent();
+		getActionBar().setTitle(boardname);	
+		mCurrBoard = boardname;
+
+		FragmentManager fm = getSupportFragmentManager();
+		FragmentTransaction ft = fm.beginTransaction();
+		if (mBoardFragment == null) {
+			mBoardFragment = new BoardFragment();
+			ft.add(R.id.main_layout, mBoardFragment);
+		}
+		if (mCurrFragment != null)
+			ft.hide(mCurrFragment);
+
+		mCurrFragment = mBoardFragment;
+		ft.show(mCurrFragment);
+		ft.commit();
+		fm.executePendingTransactions();
+		mBoardFragment.changeBoard(boardname);
+			
+		invalidateOptionsMenu();
+	}
+
+	//when an item of search suggestion is clicked
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		TextView en = (TextView) view.findViewById(android.R.id.text1);		
+		String boardname = en.getText().toString();
+		mSearchBoard.setText("");
+		changeBoard(boardname);
+		
+		View v=this.getCurrentFocus();
+	    if ( v == null )
+	        return;
+		InputMethodManager imm = (InputMethodManager)getSystemService(
+			      Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+		
+	}
+
+	private void initFav(String string) {
+		try {
+			JSONArray arr = new JSONArray(string);
+			for (int i = 0; i < arr.length(); i++) {
+				Board board = new Board(arr.getJSONObject(i));
+				mFavList.add(newBoardItem(board.getBoardname(), board.getTitle()));
+			}
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	private void initSections(String string) {
+		try {
+			JSONArray arr = new JSONArray(string);
+			for (int i = 0; i < arr.length(); i++) {
+				Section sec = new Section(arr.getJSONObject(i));
+				Map<String, String> tmp = new HashMap<String, String>();
+				tmp.put(SECCODE, sec.getSeccode());
+				tmp.put(SECNAME, sec.getSecname());
+				mSectionGroupList.add(tmp);
+
+				JSONArray boards = sec.getBoards();
+				List<Map<String, String>> childList = new ArrayList<Map<String, String>>();
+				for (int j = 0; j < boards.length(); j++) {
+					JSONObject board = boards.getJSONObject(j);
+					Map<String, String> tmpChild = newBoardItem(
+							board.getString("boardname"), board.getString("title"));
+					childList.add(tmpChild);
+					mSearchList.add(tmpChild);
+				}
+				mBoardList.add(childList);
+			}
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

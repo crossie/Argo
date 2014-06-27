@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
-    android:background="@drawable/fav_item_state_list"
     android:orientation="vertical"
+    android:layout_marginLeft="40dp"
     android:paddingBottom="@dimen/fav_item_padding"
     android:paddingLeft="10dp"
     android:paddingTop="@dimen/fav_item_padding" >
@@ -15,18 +15,16 @@
         android:layout_height="wrap_content"
         android:ellipsize="middle"
         android:singleLine="true"
-        android:text="placeholder"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/fav_item_large"
+        android:textSize="15sp"
         android:textStyle="italic" />
 
     <TextView
         android:id="@+id/name_en"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textStyle="italic"
+        android:textColor="#8888FF"
         android:singleLine="true"
-        android:text="placeholder"
-        android:textColor="#D6B930"
         android:textSize="@dimen/fav_item_small" />
 
 </LinearLayout>

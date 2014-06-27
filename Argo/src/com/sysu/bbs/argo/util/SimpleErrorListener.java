@@ -8,13 +8,16 @@ import com.android.volley.VolleyError;
 
 public class SimpleErrorListener implements ErrorListener {
 
-	Context context;
-	public SimpleErrorListener(Context con) {
-		context = con;
+	Context mContext;
+	String mMessage;
+	public SimpleErrorListener(Context con, String message) {
+		mContext = con;
+		mMessage = message;
 	}
 	@Override
 	public void onErrorResponse(VolleyError error) {
-		Toast.makeText(context, "ÍøÂç´íÎó", Toast.LENGTH_SHORT).show();
+		if (mMessage != null)
+			Toast.makeText(mContext, mMessage, Toast.LENGTH_SHORT).show();
 	}
 
 }

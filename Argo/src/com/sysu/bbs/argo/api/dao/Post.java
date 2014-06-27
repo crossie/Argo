@@ -14,7 +14,7 @@ public class Post {
 	String username;
 	String title;
 	String board;
-	Date post_time;
+	String post_time;
 	String rawcontent;
 	String rawsignature;
 	String bbsname;
@@ -32,33 +32,22 @@ public class Post {
 		board = obj.getString("board");
 		rawcontent = obj.getString("rawcontent");
 		filename = obj.getString("filename");
-		Log.d("post",obj.toString());
-		//TODO initialize other fields
-		
+		post_time = obj.getString("post_time");
+	
 		parse(rawcontent);
 	}
 	
 	private void parse(String rawcontent2) {
-/*		String[] tmp = rawcontent2.split("【 在 .* 的大作中提到: 】");
-		if (tmp != null) {
-			parsedContent = tmp[0];
-			Log.d("parsed", parsedContent);
-			if (tmp.length > 1) {
-				parsedQuote = tmp[1].replaceFirst(": ", "");
-				Log.d("parsed", parsedQuote);
-			}
-		}*/
+
 		Splitter splitter = new Splitter("【 在 .* 的大作中提到: 】", true);
 		String[] tmp = splitter.split(rawcontent2);
 		if (tmp != null) {
 			parsedContent = tmp[0].replaceAll("(?m)^[ \t]*\r?\n", "").trim();
-			Log.d("parsed", parsedContent);
 			if (tmp.length > 1) {
 				parsedQuote = "";
 				for (int i = 1; i < tmp.length; i++)
 					parsedQuote += tmp[i];
 				parsedQuote = parsedQuote.trim();
-				Log.d("parsed", parsedQuote);
 			}
 			
 		}
@@ -89,10 +78,10 @@ public class Post {
 	public void setBoard(String board) {
 		this.board = board;
 	}
-	public Date getPost_time() {
+	public String getPost_time() {
 		return post_time;
 	}
-	public void setPost_time(Date post_time) {
+	public void setPost_time(String post_time) {
 		this.post_time = post_time;
 	}
 	public String getRawcontent() {
