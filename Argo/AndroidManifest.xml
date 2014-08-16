@@ -24,24 +24,40 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data android:name="android.app.searchable"
-            android:resource="@xml/searchable" />
-            
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
         <activity
             android:name="com.sysu.bbs.argo.TopicListActivity"
             android:label="@string/activity_title_topiclist" >
         </activity>
         <activity
-            android:name="com.sysu.bbs.argo.AddPostActivity"
-            android:label="@string/add_new_post"
-            android:parentActivityName=".MainActivity"
-            android:windowSoftInputMode="adjustResize" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+            android:name="com.sysu.bbs.argo.DraftActivity"
+            android:label="@string/activity_title_draft" >
         </activity>
+        <activity
+            android:name="com.sysu.bbs.argo.AddPostActivity"
+            android:excludeFromRecents="true"
+            android:label="@string/add_new_post"
+            android:taskAffinity=""
+            android:windowSoftInputMode="adjustResize" >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <service android:name="com.sysu.bbs.argo.util.PostService" />
+
+        <activity
+            android:name="com.sysu.bbs.argo.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        </activity>
     </application>
 
 </manifest>

@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.sysu.bbs.argo.MainActivity" >
+
+    <item
+        android:id="@+id/add_to_favorite"
+        android:orderInCategory="100"
+        android:title="@string/add_to_favorite"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/delete_from_favorite"
+        android:orderInCategory="100"
+        android:title="@string/delete_from_favorite"
+        app:showAsAction="never"/>
+
+</menu>

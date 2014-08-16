@@ -1,11 +1,7 @@
 package com.sysu.bbs.argo.api.dao;
 
-import java.sql.Date;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.util.Log;
 
 import com.sysu.bbs.argo.util.Splitter;
 
@@ -18,9 +14,10 @@ public class Post {
 	String rawcontent;
 	String rawsignature;
 	String bbsname;
-	Attachment ah;
+	//Attachment ah;
 	String filename;
 	String perm_del;
+	String type;
 	
 	String parsedContent;
 	String parsedQuote;
@@ -37,6 +34,10 @@ public class Post {
 		parse(rawcontent);
 	}
 	
+	public Post() {
+		// TODO Auto-generated constructor stub
+	}
+
 	private void parse(String rawcontent2) {
 
 		Splitter splitter = new Splitter("【 在 .* 的大作中提到: 】", true);
@@ -89,6 +90,7 @@ public class Post {
 	}
 	public void setRawcontent(String rawcontent) {
 		this.rawcontent = rawcontent;
+		parse(rawcontent);
 	}
 	public String getRawsignature() {
 		return rawsignature;
@@ -102,12 +104,12 @@ public class Post {
 	public void setBbsname(String bbsname) {
 		this.bbsname = bbsname;
 	}
-	public Attachment getAh() {
+/*	public Attachment getAh() {
 		return ah;
 	}
 	public void setAh(Attachment ah) {
 		this.ah = ah;
-	}
+	}*/
 	public String getFilename() {
 		return filename;
 	}
@@ -135,6 +137,14 @@ public class Post {
 
 	public void setParsedQuote(String parsedQuote) {
 		this.parsedQuote = parsedQuote;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 	
 	

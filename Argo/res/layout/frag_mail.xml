@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/frag_mail"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/list_background" >
+
+    <com.handmark.pulltorefresh.library.PullToRefreshListView
+        android:id="@+id/frag_mail_list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_margin="5dp"
+        android:cacheColorHint="#00000000"
+        android:divider="@dimen/divider_height"
+        android:dividerHeight="4dp"
+        android:fadingEdge="none"
+        android:fastScrollEnabled="false"
+        android:footerDividersEnabled="false"
+        android:headerDividersEnabled="false"
+        android:smoothScrollbar="true" />
+
+</FrameLayout>

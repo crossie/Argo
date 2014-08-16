@@ -20,6 +20,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,7 +39,7 @@ import com.sysu.bbs.argo.util.SimpleErrorListener;
 
 public class PostAdapter extends ArrayAdapter<String> implements OnClickListener {
 
-	private HashMap<String, Post> mPostMap;
+	private static HashMap<String, Post> mPostMap;
 	//how to initialize board name ?
 	private String mBoardName;
 	private RequestQueue mRequestQueue;
@@ -91,9 +92,13 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 
 			tvQuote.setOnClickListener(this);
 			tvQuote.setVisibility(View.GONE);
-			tvContent.setOnClickListener(this);
+			//tvContent.setOnClickListener(this);
 			btnReply.setOnClickListener(this);
 			btnReply.setVisibility(View.GONE);
+			
+		/*	tvUserid.setOnClickListener(this);
+			tvTitle.setOnClickListener(this);
+			tvPosttime.setOnClickListener(this);*/
 
 			holder = new PostViewHolder(tvUserid, tvTitle, tvPosttime, tvContent, tvQuote,
 					btnReply);
@@ -106,6 +111,9 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 		}
 		
 		holder.position = position;
+		
+		if (holder.request != null) 
+			holder.request.cancel();
 		
 		String filename = getItem(position);
 		if (mPostMap.containsKey(filename)) {
@@ -123,8 +131,7 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 	}
 	
 	private void getPost(final PostViewHolder holder) {
-		if (holder.request != null) 
-			holder.request.cancel();
+
 		String url = API.GET.AJAX_POST_GET + "?boardname="
 				+ mBoardName + "&filename="
 				+ getItem(holder.position);
@@ -212,7 +219,7 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 			if (post != null)
 				reply(post);
 			else {
-				View parent = (View) v.getParent().getParent();
+				View parent = (View) v.getParent().getParent().getParent();
 				PostViewHolder holder = (PostViewHolder) parent.getTag();
 				setupHolder(holder, null);
 				getPost(holder);
@@ -228,7 +235,9 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 				textview.setMaxLines(2);
 			}
 			break;
-		case R.id.post_content:
+		default:
+			
+			
 /*			final Post holder = (Post) v.getTag();
 			if ( ! (context instanceof MainActivity))
 				return;
@@ -249,6 +258,7 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 		param.putString("content", post.getParsedContent());
 		param.putString("userid", post.getUserid());
 		param.putString("username", post.getUsername());
+		param.putInt("_where_", 1);
 
 		intent.putExtras(param);
 
@@ -261,6 +271,10 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 
 	public void setBoardName(String boardName) {
 		this.mBoardName = boardName;
+	}
+	
+	public Post getPost(String filename) {
+		return mPostMap.get(filename);
 	}
 }
 

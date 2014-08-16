@@ -7,18 +7,13 @@
     <string name="text_login_btn">登录</string>
     <string name="text_save_user_name">记住用户名</string>
     <string name="text_save_password">记住密码</string>
-    <string name="action_settings">设置</string>
-    <string name="btn_top10">十大</string>
-    <string name="mail">站内信</string>
-    <string name="all_boards">分区</string>
-    <string name="actionbar_title_top10">今日十大</string>
-    <string name="actionbar_title_mail">站内信</string>
-    <string name="actionbar_title_alls">全部版面</string>
-    <string name="btn_load_earlier">点击加载更早的帖子</string>
-    <string name="btn_load_latest">点击加载最新的帖子</string>
+
+
+
     <string name="activity_title_topiclist">同主题阅读</string>
+    <string name="activity_title_draft">草稿</string>
     <string name="add_new_post">发表新帖</string>
-    <string name="login_title">请输入用户信息</string>
+
 
   
     <string name="view_mode_normal">帖子模式</string>
@@ -33,12 +28,18 @@
     
   
     <string-array name="right_menu_items">
-        <item>更新</item>
-        <item>关于</item>
         <item>登录</item>
+        <item>草稿</item>
+        <item>设置</item>
+        <item>关于</item>      
     </string-array>
     
-    <string name="menu_title_copy">复制内容和链接</string>
+    <string name="title_activity_settings">设置</string>
+    <string name="setting_post_order">帖子按时间降序排列</string>
+    <string name="setting_post_mode">默认显示帖子模式</string>
+    
+    <string name="menu_title_share">分享</string>
+    <string name="menu_title_copy">复制</string>
     <string name="menu_title_topic">同主题阅读</string>
     
     <string name="loading">加载中</string>

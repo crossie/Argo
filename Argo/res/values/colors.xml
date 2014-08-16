@@ -8,4 +8,6 @@
     <color name="add_comment_pressed_backgroud">#AA888888</color>
     
     <color name="list_item_pressed_background">#888888</color>
+    
+    <color name="list_background">#E6E6E6</color>
 </resources>
