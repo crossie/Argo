@@ -1,17 +1,34 @@
 package com.sysu.bbs.argo.view;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Toast;
 
-import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.Mode;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.sysu.bbs.argo.R;
+import com.sysu.bbs.argo.TopicListActivity;
 import com.sysu.bbs.argo.adapter.PostHeadAdapter;
 import com.sysu.bbs.argo.api.dao.PostHead;
 
-public class TopicFragment extends AbstractBoardFragment<PostHead> {
+public class TopicFragment extends AbstractBoardFragment<PostHead> implements OnItemClickListener {
 
 	PostHeadAdapter mPostHeadAdapter;
 	
@@ -24,15 +41,24 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> {
 		mListView.setOnRefreshListener(this);
 		mListView.setMode(Mode.BOTH);
 		mListView.setEmptyView(v.findViewById(android.R.id.empty));
+		mListView.setOnItemClickListener(this);
 		
 		mType = "topic";
-		mPostHeadAdapter = new PostHeadAdapter(getActivity(), android.R.layout.simple_list_item_1, mDataList);
-		mAdapter = mPostHeadAdapter;
-		mListView.setAdapter(mAdapter);
-		
+
 		return v;
 	}
 
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+
+		mPostHeadAdapter = new PostHeadAdapter(getActivity(), android.R.layout.simple_list_item_1, mDataList);
+		mAdapter = mPostHeadAdapter;
+		mListView.setAdapter(mAdapter);
+		//mListView.setOnLongClickListener(this);
+		registerForContextMenu(mListView.getRefreshableView());
+		
+		super.onActivityCreated(savedInstanceState);
+	}
 	
 	@Override
 	protected void add2DataList(PostHead postHead, boolean head) {
@@ -52,5 +78,82 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+/*	@Override
+	public boolean onLongClick(View listItem) {
+		mListView.getRefreshableView().showContextMenuForChild(listItem);
+		return false;
+	}*/
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		// TODO Auto-generated method stub
+		// 
+		getActivity().getMenuInflater().inflate(R.menu.post_popup, menu);
+		menu.removeItem(R.id.menu_post_topic);
+		//super.onCreateContextMenu(menu, v, menuInfo);
+		
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
+				.getMenuInfo();
+		PostHead posthead = mPostHeadAdapter.getItem(info.position - 1);
+		
+		String link = String.format("http://bbs.sysu.edu.cn/bbstcon?board=%s&file=%s", posthead.getBoardname(), posthead.getFilename());
+		String content = "发信人: %s, 信区: %s\n" 
+						 + "标  题: %s\n"	
+						 + "发帖时间: %s\n"
+						 + "原文链接: %s";
+		SimpleDateFormat sdf = new SimpleDateFormat("ddMMM HH:mm   ", Locale.US);
+		Calendar update = Calendar.getInstance();
+		update.setTimeInMillis(1000*Long.valueOf(posthead.getUpdate()));
+		Date date = update.getTime();
+		
+		content = String.format(content, posthead.getOwner(),
+				posthead.getBoardname(),
+				posthead.getTitle(),
+				sdf.format(date),
+				link);
+		
+		Intent intent = null;
+		
+		switch (item.getItemId()) {
+		case R.id.menu_post_copy:		
+			ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+			ClipData clip = ClipData.newPlainText("post", content);
+			cm.setPrimaryClip(clip);
+			Toast.makeText(getActivity(), "复制成功", Toast.LENGTH_SHORT).show();
+			break;
+
+		case R.id.menu_post_share:
+			intent = new Intent(Intent.ACTION_SEND);
+
+			intent.setType("text/plain");
+			intent.putExtra(Intent.EXTRA_SUBJECT, "分享内容和链接");
+			intent.putExtra(Intent.EXTRA_TEXT, content);
+			startActivity(Intent.createChooser(intent, "分享到..."));
+			break;
+		default:
+			break;
+		}
+		return super.onContextItemSelected(item);
+
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> listView, View listItem, int pos, long id) {
+
+		Intent intent = new Intent(getActivity(), TopicListActivity.class);
+		intent.putExtra("boardname", mPostHeadAdapter.getItem(pos - 1).getBoardname());
+		intent.putExtra("filename", mPostHeadAdapter.getItem(pos - 1).getFilename());
+
+		getActivity().startActivity(intent);
+		
+	}
+	
 
 }

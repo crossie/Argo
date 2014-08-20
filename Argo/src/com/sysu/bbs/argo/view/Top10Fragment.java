@@ -49,6 +49,10 @@ public class Top10Fragment extends PullToRefreshListFragment
 	RequestQueue requestQueue = null;
 	
 	private PullToRefreshListView mPullRefreshListView;
+	
+	private int[] mRankingBackground = new int[] {R.color.ranking_1,R.color.ranking_2,R.color.ranking_3,
+			R.color.ranking_4,R.color.ranking_5,R.color.ranking_6,R.color.ranking_7,
+			R.color.ranking_8,R.color.ranking_9,R.color.ranking_10,};
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -128,6 +132,7 @@ public class Top10Fragment extends PullToRefreshListFragment
 
 			Top10 top10 = getItem(position);
 			holder.tvNum.setText(String.valueOf(top10.getNum()));
+			holder.tvNum.setBackgroundResource(mRankingBackground[position]);
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("    ddMMM HH:mm", Locale.US);
 			Calendar update = Calendar.getInstance();

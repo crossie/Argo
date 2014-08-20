@@ -219,6 +219,7 @@ public class TopicListActivity extends SwipeBackActivity implements
 			ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 			ClipData clip = ClipData.newPlainText("post", content);
 			cm.setPrimaryClip(clip);
+			Toast.makeText(this, "¸´ÖÆ³É¹¦", Toast.LENGTH_SHORT).show();
 			break;
 		case R.id.menu_post_topic:
 			break;

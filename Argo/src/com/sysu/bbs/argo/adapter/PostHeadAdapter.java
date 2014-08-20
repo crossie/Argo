@@ -32,8 +32,8 @@ import com.sysu.bbs.argo.TopicListActivity;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.PostHead;
 
-public class PostHeadAdapter extends ArrayAdapter<PostHead> implements
-		OnClickListener {
+public class PostHeadAdapter extends ArrayAdapter<PostHead> /*implements 
+		OnClickListener*/ {
 	ArrayList<PostHead> postHeadList;
 	Context con;
 
@@ -67,7 +67,7 @@ public class PostHeadAdapter extends ArrayAdapter<PostHead> implements
 					.findViewById(R.id.topic_user_time);
 			holder = new TopicHolder(title, userTime);
 
-			tmp.setOnClickListener(this);
+			//tmp.setOnClickListener(this);
 
 		} else {
 			holder = (TopicHolder) tmp.getTag();
@@ -91,7 +91,7 @@ public class PostHeadAdapter extends ArrayAdapter<PostHead> implements
 		return tmp;
 	}
 
-	@Override
+/*	@Override
 	public void onClick(View view) {
 		final TopicHolder holder = (TopicHolder) view.getTag();
 
@@ -100,6 +100,6 @@ public class PostHeadAdapter extends ArrayAdapter<PostHead> implements
 		intent.putExtra("filename", holder.filename);
 
 		con.startActivity(intent);
-	}
+	}*/
 
 }

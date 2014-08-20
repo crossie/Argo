@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Toast;
 
 import com.handmark.pulltorefresh.library.PullToRefreshBase.Mode;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -45,13 +46,19 @@ public class NormalFragment extends AbstractBoardFragment<String> implements
 		mListView.setEmptyView(v.findViewById(android.R.id.empty));
 
 		mType = "normal";
+
+		return v;
+	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
 		mPostAdapter = new PostAdapter(getActivity(),
 				android.R.layout.simple_list_item_1, mDataList, mCurrBoard);
 		mAdapter = mPostAdapter;
 		mListView.setAdapter(mAdapter);
 		mListView.setOnItemClickListener(this);
 		registerForContextMenu(mListView.getRefreshableView());
-		return v;
+		super.onActivityCreated(savedInstanceState);
 	}
 
 	@Override
@@ -120,6 +127,7 @@ public class NormalFragment extends AbstractBoardFragment<String> implements
 			ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
 			ClipData clip = ClipData.newPlainText("post", content);
 			cm.setPrimaryClip(clip);
+			Toast.makeText(getActivity(), "¸´ÖÆ³É¹¦", Toast.LENGTH_SHORT).show();
 			break;
 		case R.id.menu_post_topic:
 			intent = new Intent(getActivity(), TopicListActivity.class);

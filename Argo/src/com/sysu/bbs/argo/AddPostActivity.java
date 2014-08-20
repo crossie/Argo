@@ -139,7 +139,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 
 	@Override
 	public void succeeded(String userid) {
-		SessionManager.loginListeners.remove(this);
+		//SessionManager.loginListeners.remove(this);
 		sendPost();
 
 	}
@@ -148,6 +148,11 @@ public class AddPostActivity extends SwipeBackActivity implements
 	public void failed() {
 		// TODO Auto-generated method stub
 
+	}
+	
+	@Override
+	public boolean removeMe() {
+		return true;
 	}
 
 	public void sendPost() {

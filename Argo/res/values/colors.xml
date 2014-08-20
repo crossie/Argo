@@ -10,4 +10,15 @@
     <color name="list_item_pressed_background">#888888</color>
     
     <color name="list_background">#E6E6E6</color>
+    
+    <color name="ranking_1">#CC0000</color>
+    <color name="ranking_2">#FE4543</color>
+    <color name="ranking_3">#FE8801</color>
+    <color name="ranking_4">#FFBB32</color>
+    <color name="ranking_5">#FFBB32</color>
+    <color name="ranking_6">#FFBB32</color>
+    <color name="ranking_7">#FFBB32</color>
+    <color name="ranking_8">#FFBB32</color>
+    <color name="ranking_9">#FFBB32</color>
+    <color name="ranking_10">#FFBB32</color>
 </resources>

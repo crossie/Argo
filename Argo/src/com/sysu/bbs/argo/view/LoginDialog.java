@@ -84,7 +84,7 @@ public class LoginDialog extends DialogFragment
 	@Override
 	public void succeeded(String userid) {
 		mLoginProgressDialog.dismiss();
-		SessionManager.loginListeners.remove(this);
+		//SessionManager.loginListeners.remove(this);
 		
 		boolean isSaveUsername = mSaveUsername.isChecked();
 		boolean isSavePassword = mSavePassword.isChecked();
@@ -105,7 +105,13 @@ public class LoginDialog extends DialogFragment
 	@Override
 	public void failed() {
 		mLoginProgressDialog.dismiss();
-		SessionManager.loginListeners.remove(this);		
+		//SessionManager.loginListeners.remove(this);		
+	}
+	
+	@Override
+	public boolean removeMe() {
+		return true;
+
 	}
 
 }

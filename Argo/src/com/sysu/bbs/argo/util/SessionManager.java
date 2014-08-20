@@ -5,6 +5,7 @@ import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,9 +57,15 @@ public class SessionManager implements Listener<String> {
 			@Override
 			public void onErrorResponse(VolleyError error) {
 				Toast.makeText(mContext, "ÍøÂç´íÎó£¬µÇÂ¼Ê§°Ü", Toast.LENGTH_SHORT).show();
-				for (LoginListener listener : loginListeners)
+				Iterator<LoginListener> iter = loginListeners.iterator();
+				while (iter.hasNext()) {
+					LoginListener listener = iter.next();
 					if (listener != null)
-						listener.failed();				
+						listener.failed();		
+					if (listener.removeMe())
+						iter.remove();
+						
+				}
 			}
 			
 		},param));
@@ -103,6 +110,7 @@ public class SessionManager implements Listener<String> {
 	}
 
 	public interface LoginListener {
+		public boolean removeMe();
 		public void succeeded(String userid);
 		public void failed();
 	}
@@ -118,20 +126,30 @@ public class SessionManager implements Listener<String> {
 	private void loginResponse(String response) {
 		try {
 			JSONObject loginResult = new JSONObject(response);
-
+			Iterator<LoginListener> iter = loginListeners.iterator();
 			if (loginResult != null
 					&& loginResult.getString("success").equals("1")) {
 				SessionManager.isLoggedIn = true;
-
-				for (LoginListener listener : loginListeners) {
-					if (listener != null )
-						listener.succeeded(mUsername);
+			
+				while (iter.hasNext()) {
+					LoginListener listener = iter.next();
+					if (listener != null)
+						listener.succeeded(mUsername);		
+					if (listener.removeMe())
+						iter.remove();
 				}
 
 			} else {
 				Toast.makeText(mContext,
 						"login failed, " + loginResult.getString("error"),
 						Toast.LENGTH_SHORT).show();
+				while (iter.hasNext()) {
+					LoginListener listener = iter.next();
+					if (listener != null)
+						listener.failed();		
+					if (listener.removeMe())
+						iter.remove();
+				}
 			}
 		} catch (JSONException e) {
 			Toast.makeText(mContext, "unexpected error in login",

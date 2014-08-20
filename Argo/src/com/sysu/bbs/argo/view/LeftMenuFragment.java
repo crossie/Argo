@@ -132,6 +132,7 @@ public class LeftMenuFragment extends DialogFragment
 			TextView top10Header = (TextView) inflater.inflate(
 					android.R.layout.simple_list_item_1, null);
 			top10Header.setText("今日十大");
+			//top10Header.setCompoundDrawablesWithIntrinsicBounds(R.drawable.top10, 0, 0, 0);
 			top10Header.setOnClickListener(new OnClickListener() {
 
 				@Override
@@ -521,7 +522,7 @@ public class LeftMenuFragment extends DialogFragment
 		mBoardChangedListener.changeBoard(boardname);
 		if (getDialog() != null) {
 			getDialog().dismiss();
-			SessionManager.loginListeners.remove(this);
+			//SessionManager.loginListeners.remove(this);
 		}
 		View v=getActivity().getCurrentFocus();
 	    if ( v == null )
@@ -573,6 +574,15 @@ public class LeftMenuFragment extends DialogFragment
 	@Override
 	public void failed() {
 		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public boolean removeMe() {
+		if (getDialog() != null)
+			return true;
+		else
+			return false;
 		
 	}
 	

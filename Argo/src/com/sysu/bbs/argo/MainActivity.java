@@ -55,6 +55,7 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		mSlidingMenu.setSecondaryShadowDrawable(R.drawable.shadowright);
 		mSlidingMenu.setBehindOffsetRes(R.dimen.menu_offset);
 		mSlidingMenu.attachToActivity(this, SlidingMenu.SLIDING_CONTENT);
+
 				
 		mTop10Fragment = new Top10Fragment();
 		mBoardFragment = new BoardFragment();

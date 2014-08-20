@@ -123,6 +123,12 @@ public class RightMenuFragment extends ListFragment implements LoginListener, Lo
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public boolean removeMe() {
+		return false;
+		
+	}
 
 	@Override
 	public void logout(boolean success) {
