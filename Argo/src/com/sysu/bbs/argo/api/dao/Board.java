@@ -27,7 +27,11 @@ public class Board {
 	String lastauthor;
 	
 	public Board(JSONObject json) throws JSONException {
-		boardname = json.getString("boardname").trim();
+		try {
+			boardname = json.getString("boardname").trim();
+		} catch(JSONException e) {
+			boardname = json.getString("filename").trim();
+		}
 		title = json.getString("title").trim();
 		
 		bm = new ArrayList<String>();
@@ -36,7 +40,7 @@ public class Board {
 			bm.add(bmArr.getString(i));
 		
 		//TODO: initialize other members
-		
+		unread = json.getString("unread").equals("") ? false : true;
 	}
 	
 	public String getBoardname() {

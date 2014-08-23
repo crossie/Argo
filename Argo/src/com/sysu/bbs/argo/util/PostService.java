@@ -120,6 +120,7 @@ public class PostService extends Service {
 							public void onErrorResponse(VolleyError error) {
 								// TODO Auto-generated method stub
 								postFailed(postBundle, notificationID);
+								stopSelf();
 							}
 
 						}, param));
@@ -134,9 +135,6 @@ public class PostService extends Service {
 		
 		Intent resultIntent = new Intent(PostService.this,
 				DraftActivity.class);
-		//bundle.putInt("_where_", 2);
-
-		//resultIntent.putExtras(bundle);
 
 		resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
 				| Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -189,20 +187,16 @@ public class PostService extends Service {
 			
 			
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			if (bw != null) {
 				try {
 					bw.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

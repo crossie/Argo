@@ -1,5 +1,6 @@
 package com.sysu.bbs.argo;
 
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.sysu.bbs.argo.util.UnreadService;
 import com.sysu.bbs.argo.view.AbstractBoardFragment;
 import com.sysu.bbs.argo.view.BoardFragment;
 import com.sysu.bbs.argo.view.LeftMenuFragment;
@@ -73,6 +75,9 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		ft.hide(mBoardFragment);		
 		ft.commit();
 		mCurrFragment = mTop10Fragment;
+		
+		//Intent service = new Intent(this, UnreadService.class);
+		//startService(service);
 
 		
 		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
@@ -85,18 +90,13 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		activityStyle.recycle();
 
 	}
-/*
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		getSupportFragmentManager().putFragment(outState, "leftmenu", mLeftMenuFragment);
-	}
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		getMenuInflater().inflate(R.menu.post_popup, menu);
-	}*/
 	
+	@Override
+	protected void onDestroy() {
+		Intent service = new Intent(this, UnreadService.class);
+		stopService(service);
+		super.onDestroy();
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

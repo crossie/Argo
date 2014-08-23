@@ -53,6 +53,7 @@
         </activity>
 
         <service android:name="com.sysu.bbs.argo.util.PostService" />
+        <service android:name="com.sysu.bbs.argo.util.UnreadService" />
 
         <activity
             android:name="com.sysu.bbs.argo.SettingsActivity"
