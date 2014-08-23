@@ -127,8 +127,10 @@ public class PostService extends Service {
 	}
 
 	private void postFailed(Bundle bundle, final int notificationID) {
-		
-		add2Draft(bundle);
+		String draft = bundle.getString("_draft_");
+		if (draft == null || draft.equals("")) {
+			add2Draft(bundle);
+		}
 		
 		Intent resultIntent = new Intent(PostService.this,
 				DraftActivity.class);
@@ -167,17 +169,6 @@ public class PostService extends Service {
 	}
 
 	private void add2Draft(Bundle bundle) {
-/*		ArgoSQLOpenHelper dbHelper = new ArgoSQLOpenHelper(this, "argo.db", null, 1);
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		
-		db.execSQL("insert into argo_post(type, boardname, articleid, title, content) values(?,?,?,?,?);"
-				, new String[]{bundle.getString("type"),
-						bundle.getString("boardname"),
-						bundle.getString("articleid"),
-						bundle.getString("title"),
-						bundle.getString("content")});
-		db.close();
-		dbHelper.close();*/
 
 		File draftDir = new File(getFilesDir(), "Draft");
 		if (!draftDir.exists())

@@ -20,12 +20,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -59,15 +60,12 @@ import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Board;
 import com.sysu.bbs.argo.api.dao.Section;
 import com.sysu.bbs.argo.util.SessionManager;
-import com.sysu.bbs.argo.util.SessionManager.LoginListener;
-import com.sysu.bbs.argo.util.SessionManager.LogoutListener;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
 
 public class LeftMenuFragment extends DialogFragment 
 	implements OnItemClickListener, OnRefreshListener<ExpandableListView>, 
-		OnChildClickListener, 
-		LoginListener, LogoutListener {
+		OnChildClickListener {
 
 	private AutoCompleteTextView mSearchBoard;
 	private PullToRefreshExpandableListView mBoardListView;
@@ -88,7 +86,7 @@ public class LeftMenuFragment extends DialogFragment
 	private String mUserid = null;
 	private String mCurrBoard;
 	
-	private File mFilesDir = null;
+	//private File mFilesDir = null;
 	
 	//private boolean isFavoriteInitialized = false;
 	
@@ -98,7 +96,9 @@ public class LeftMenuFragment extends DialogFragment
 	
 	private static final String BOARDNAME_TOP10 = "今日十大";
 	
-	private Activity mSavedActivity;
+	//private Activity mSavedActivity;
+	
+	private BroadcastReceiver mSessionStatusReceiver;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -125,9 +125,6 @@ public class LeftMenuFragment extends DialogFragment
 		mSearchBoard.setOnItemClickListener(this);
 		
 		if (getDialog() == null) {
-			
-			SessionManager.loginListeners.add(this);
-			SessionManager.logoutListeners.add(this);
 			
 			TextView top10Header = (TextView) inflater.inflate(
 					android.R.layout.simple_list_item_1, null);
@@ -181,18 +178,53 @@ public class LeftMenuFragment extends DialogFragment
 		mSectionGroupList.add(favMap);
 		mBoardList.add(mFavList);
 		
-		
+		mSessionStatusReceiver = new BroadcastReceiver() {
+			
+			@Override
+			public void onReceive(Context con, Intent intent) {
+				String action = intent.getAction();
+				if (action.equals(SessionManager.BROADCAST_LOGIN)) {
+					String userid = intent.getStringExtra("userid");
+					if (userid != null && !userid.equals("")) {
+						succeeded(con, userid);
+					} 
+				} else if (action.equals(SessionManager.BROADCAST_LOGOUT)) {
+					if (intent.getBooleanExtra("success", false)) {
+						mFavList.clear();
+						mBoardAdapter.notifyDataSetChanged();
+					}
+				}
+				
+			}
+		};
 				
 		return v;
 	}
 	
 	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);  
+		intentFilter.addAction(SessionManager.BROADCAST_LOGOUT);  
+		getActivity().registerReceiver(mSessionStatusReceiver, intentFilter);
+	}
+	
+	@Override
+	public void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		getActivity().unregisterReceiver(mSessionStatusReceiver);
+	}
+	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-		if (mFilesDir == null)
-			mFilesDir = getActivity().getFilesDir();
+
+//		if (mFilesDir == null)
+//			mFilesDir = getActivity().getFilesDir();
 		
 		if (SessionManager.isLoggedIn) {
-			succeeded(SessionManager.getUsername());
+			succeeded(getActivity(), SessionManager.getUsername());
 		}
 		
 		mBoardChangedListener = (BoardChangedListener) getActivity();
@@ -508,7 +540,6 @@ public class LeftMenuFragment extends DialogFragment
 		mBoardChangedListener.changeBoard(boardname);
 		if (getDialog() != null) {
 			getDialog().dismiss();
-			//SessionManager.loginListeners.remove(this);
 		}
 		return false;
 	}
@@ -522,7 +553,6 @@ public class LeftMenuFragment extends DialogFragment
 		mBoardChangedListener.changeBoard(boardname);
 		if (getDialog() != null) {
 			getDialog().dismiss();
-			//SessionManager.loginListeners.remove(this);
 		}
 		View v=getActivity().getCurrentFocus();
 	    if ( v == null )
@@ -533,12 +563,11 @@ public class LeftMenuFragment extends DialogFragment
 		
 	}
 
-	@Override
-	public void succeeded(String userid) {
+	private void succeeded(Context con, String userid) {
 		//Log.i("leftmenu", "succeeded");
 		mUserid = userid;
-		//File dir = mSavedActivity.getFilesDir();
-		File sections = new File(mFilesDir, mUserid + ".json");
+		File dir = con.getFilesDir();
+		File sections = new File(dir, mUserid + ".json");
 		FileInputStream fis = null;
 		BufferedReader br = null;
 		if (sections.exists()) {
@@ -570,33 +599,7 @@ public class LeftMenuFragment extends DialogFragment
 		//mMailHeader.setVisibility(View.VISIBLE);
 
 	}
-	
-	@Override
-	public void failed() {
-		// TODO Auto-generated method stub
 		
-	}
-	
-	@Override
-	public boolean removeMe() {
-		if (getDialog() != null)
-			return true;
-		else
-			return false;
-		
-	}
-	
-	@Override
-	public void logout(boolean success) {
-		if (success) {
-			//mMailHeader.setVisibility(View.GONE);
-			mFavList.clear();
-			mBoardAdapter.notifyDataSetChanged();
-			//isFavoriteInitialized = false;
-		}
-		
-	}
-	
 	public interface BoardChangedListener {
 		public void changeBoard(String boardname);
 	}

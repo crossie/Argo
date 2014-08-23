@@ -2,11 +2,16 @@ package com.sysu.bbs.argo.view;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -19,10 +24,8 @@ import android.widget.Toast;
 
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.util.SessionManager;
-import com.sysu.bbs.argo.util.SessionManager.LoginListener;
 
-public class LoginDialog extends DialogFragment 
-	implements OnClickListener, LoginListener {
+public class LoginDialog extends DialogFragment implements OnClickListener {
 	private EditText mUsername;
 	private EditText mPassword;
 	private CheckBox mSaveUsername;
@@ -30,6 +33,8 @@ public class LoginDialog extends DialogFragment
 
 	private Button mLoginButton;
 	private ProgressDialog mLoginProgressDialog;
+
+	private BroadcastReceiver mLoginReceiver;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -42,11 +47,45 @@ public class LoginDialog extends DialogFragment
 
 		mLoginButton = (Button) view.findViewById(R.id.btn_login);
 		mLoginButton.setOnClickListener(this);
-		
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(getActivity());
 		mUsername.setText(sp.getString("userid", ""));
 		mPassword.setText(sp.getString("password", ""));
 
+		mLoginReceiver = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context con, Intent intent) {
+				String action = intent.getAction();
+				if (action.equals(SessionManager.BROADCAST_LOGIN)) {
+					String userid = intent.getStringExtra("userid");
+					if (userid != null && !userid.equals("")) {
+						mLoginProgressDialog.dismiss();
+
+						boolean isSaveUsername = mSaveUsername.isChecked();
+						boolean isSavePassword = mSavePassword.isChecked();
+
+						if (isSaveUsername) {
+							SharedPreferences sp = PreferenceManager
+									.getDefaultSharedPreferences(getActivity());
+							Editor editor = sp.edit();
+							editor.putString("userid", mUsername.getText().toString());
+
+							if (isSavePassword) {
+								editor.putString("password", mPassword.getText().toString());
+							}
+							editor.commit();
+						}
+						dismiss();
+					} else {
+						mLoginProgressDialog.dismiss();
+					}
+				}
+
+			}
+
+		};
 		return view;
 	}
 
@@ -54,7 +93,6 @@ public class LoginDialog extends DialogFragment
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		Dialog dialog = super.onCreateDialog(savedInstanceState);
 
-		// request a window without the title
 		dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 		return dialog;
 	}
@@ -72,46 +110,30 @@ public class LoginDialog extends DialogFragment
 
 		mLoginProgressDialog = new ProgressDialog(getActivity());
 		mLoginProgressDialog.setMessage("µÇÂ¼ÖÐ...");
-		mLoginProgressDialog.setCancelable(false);  
+		mLoginProgressDialog.setCancelable(false);
 		mLoginProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 		mLoginProgressDialog.show();
-		
-		SessionManager sm = new SessionManager(getActivity(), username, password);
-		SessionManager.loginListeners.add(this);
+
+		SessionManager sm = new SessionManager(getActivity(), username,
+				password);
 		sm.login();
 	}
 
 	@Override
-	public void succeeded(String userid) {
-		mLoginProgressDialog.dismiss();
-		//SessionManager.loginListeners.remove(this);
-		
-		boolean isSaveUsername = mSaveUsername.isChecked();
-		boolean isSavePassword = mSavePassword.isChecked();
-		
-		if (isSaveUsername) {
-			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-			Editor editor = sp.edit();
-			editor.putString("userid", mUsername.getText().toString());
-			
-			if (isSavePassword) {
-				editor.putString("password", mPassword.getText().toString());
-			}
-			editor.commit();
-		}		
-		dismiss();		
-	}
-
-	@Override
-	public void failed() {
-		mLoginProgressDialog.dismiss();
-		//SessionManager.loginListeners.remove(this);		
+	public void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);  
+		getActivity().registerReceiver(mLoginReceiver, intentFilter);
+		Log.i("broadcaster", "onresume login dialog");
 	}
 	
 	@Override
-	public boolean removeMe() {
-		return true;
-
+	public void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		getActivity().unregisterReceiver(mLoginReceiver);
 	}
 
 }

@@ -165,7 +165,7 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 		Post post = mPostMap.get(getItem(pos));
 		Intent intent = new Intent(getContext(), AddPostActivity.class);
 		Bundle param = new Bundle();
-		param.putString("type", "reply");
+		param.putString("type", post.getType());
 		param.putString("boardname", post.getBoard());
 		param.putString("articleid", post.getFilename());
 		param.putString("title", post.getTitle());

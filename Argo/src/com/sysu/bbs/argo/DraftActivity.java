@@ -41,17 +41,23 @@ public class DraftActivity extends SwipeBackActivity {
 		mDraftListView.setOnItemClickListener(mAdapter);
 
 		mDraftPath = getFilesDir().getAbsolutePath() + "/Draft";
-		File draftDir = new File(mDraftPath);
-		if (!draftDir.exists())
-			draftDir.mkdir();
-		mDraftList.addAll(Arrays.asList(draftDir.listFiles()));
-		mAdapter.notifyDataSetChanged();
 
+		File draftDir = new File(mDraftPath);
 		mHandler = new Handler();
 		mDraftObserver = new DraftObserver(draftDir.getAbsolutePath());
 		mDraftObserver.startWatching();
 	}
 
+	@Override
+	protected void onResume() {
+		mDraftList.clear();
+		File draftDir = new File(mDraftPath);
+		if (!draftDir.exists())
+			draftDir.mkdir();
+		mDraftList.addAll(Arrays.asList(draftDir.listFiles()));
+		mAdapter.notifyDataSetChanged();
+		super.onResume();
+	}
 	@Override
 	protected void onDestroy() {
 		mDraftObserver.stopWatching();

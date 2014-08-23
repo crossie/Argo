@@ -255,7 +255,7 @@ public class PostAdapter extends ArrayAdapter<String> implements OnClickListener
 		param.putString("boardname", post.getBoard());
 		param.putString("articleid", post.getFilename());
 		param.putString("title", post.getTitle());
-		param.putString("content", post.getParsedContent());
+		param.putString("content", post.getRawcontent());
 		param.putString("userid", post.getUserid());
 		param.putString("username", post.getUsername());
 		param.putInt("_where_", 1);

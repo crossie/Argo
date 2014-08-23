@@ -50,9 +50,9 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		mSlidingMenu.setSecondaryMenu(R.layout.sliding_menu_right);
 		mSlidingMenu.setMode(SlidingMenu.LEFT_RIGHT);
 		mSlidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		mSlidingMenu.setShadowDrawable(R.drawable.shadow);
+		//mSlidingMenu.setShadowDrawable(R.drawable.shadow);
 		mSlidingMenu.setShadowWidthRes(R.dimen.shadow_width);
-		mSlidingMenu.setSecondaryShadowDrawable(R.drawable.shadowright);
+		//mSlidingMenu.setSecondaryShadowDrawable(R.drawable.shadowright);
 		mSlidingMenu.setBehindOffsetRes(R.dimen.menu_offset);
 		mSlidingMenu.attachToActivity(this, SlidingMenu.SLIDING_CONTENT);
 

@@ -1,31 +1,33 @@
 package com.sysu.bbs.argo;
 
 import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.sysu.bbs.argo.util.PostService;
 import com.sysu.bbs.argo.util.SessionManager;
-import com.sysu.bbs.argo.util.SessionManager.LoginListener;
 import com.sysu.bbs.argo.util.Splitter;
 import com.sysu.bbs.argo.view.LeftMenuFragment;
 //import com.sysu.bbs.argo.view.LoginDialog.Communicator;
 import com.sysu.bbs.argo.view.LeftMenuFragment.BoardChangedListener;
 import com.sysu.bbs.argo.view.LoginDialog;
 
-public class AddPostActivity extends SwipeBackActivity implements
-		LoginListener, BoardChangedListener {
+public class AddPostActivity extends SwipeBackActivity implements BoardChangedListener {
 
-	EditText mEditTitle;
-	EditText mEditContent;
-	Bundle mNewPostBundle;
+	private EditText mEditTitle;
+	private EditText mEditContent;
+	private Bundle mNewPostBundle;
 	
-	Button mChooseBoard;
+	private Button mChooseBoard;
+	
+	private BroadcastReceiver mLoginReceiver;
 
 	// String mDraft;
 
@@ -68,8 +70,8 @@ public class AddPostActivity extends SwipeBackActivity implements
 
 				String tmp = mNewPostBundle.getString("content");
 
-				tmp = tmp.substring(0, Math.min(100, tmp.length()));
-				tmp = tmp.replaceAll("(?m)^", ": ");
+				tmp = tmp.substring(0, Math.min(200, tmp.length()));
+				tmp = tmp.replaceAll("(?m)^", ": ").replace("\n", "<br/>");
 
 				String quote = "<br/><font color=\"#888888\">【 在 %s (%s) 的大作中提到: 】<br/>%s</font>";
 				quote = String.format(quote,
@@ -104,10 +106,37 @@ public class AddPostActivity extends SwipeBackActivity implements
 			// mDraft = mNewPostBundle.getString("_draft_");
 		}
 		
-		SessionManager.loginListeners.add(this);
+		mLoginReceiver = new BroadcastReceiver() {
+			
+			@Override
+			public void onReceive(Context con, Intent intent) {
+				String action = intent.getAction();
+				if (action.equals(SessionManager.BROADCAST_LOGIN)) {
+					String userid = intent.getStringExtra("userid");
+					if (userid != null && !userid.equals("")) {
+						sendPost();
+					} 
+				}
+				
+			}
+		};
 
 	}
-
+	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);  
+		registerReceiver(mLoginReceiver, intentFilter);
+	}
+	
+	@Override
+	public void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+		unregisterReceiver(mLoginReceiver);
+	}
 	public void onClick(View v) {
 		LeftMenuFragment chooseBoard = null;
 		switch (v.getId()) {
@@ -137,24 +166,6 @@ public class AddPostActivity extends SwipeBackActivity implements
 
 	}
 
-	@Override
-	public void succeeded(String userid) {
-		//SessionManager.loginListeners.remove(this);
-		sendPost();
-
-	}
-
-	@Override
-	public void failed() {
-		// TODO Auto-generated method stub
-
-	}
-	
-	@Override
-	public boolean removeMe() {
-		return true;
-	}
-
 	public void sendPost() {
 		Intent service = new Intent(this, PostService.class);
 
@@ -164,11 +175,6 @@ public class AddPostActivity extends SwipeBackActivity implements
 		service.putExtras(mNewPostBundle);
 
 		startService(service);
-
-		/*
-		 * if (mDraft != null) { File draft = new File(mDraft); draft.delete();
-		 * }
-		 */
 		finish();
 	}
 

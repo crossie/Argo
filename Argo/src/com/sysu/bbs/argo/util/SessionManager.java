@@ -11,6 +11,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender.SendIntentException;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
@@ -28,10 +30,11 @@ public class SessionManager implements Listener<String> {
 	private static String mUsername;
 	private static String mPassword;
 
-	public static ArrayList<LoginListener> loginListeners = new ArrayList<LoginListener>();
-	public static ArrayList<LogoutListener> logoutListeners = new ArrayList<LogoutListener>();
-
 	public static boolean isLoggedIn = false;
+	
+	public static String BROADCAST_LOGIN = "com.sysu.bbs.argo.util.login";
+	public static String BROADCAST_LOGOUT = "com.sysu.bbs.argo.util.logout";
+	
 
 	public SessionManager(Context con, String username, String password) {
 		mContext = con;
@@ -57,15 +60,10 @@ public class SessionManager implements Listener<String> {
 			@Override
 			public void onErrorResponse(VolleyError error) {
 				Toast.makeText(mContext, "ÍøÂç´íÎó£¬µÇÂ¼Ê§°Ü", Toast.LENGTH_SHORT).show();
-				Iterator<LoginListener> iter = loginListeners.iterator();
-				while (iter.hasNext()) {
-					LoginListener listener = iter.next();
-					if (listener != null)
-						listener.failed();		
-					if (listener.removeMe())
-						iter.remove();
-						
-				}
+				Intent intent = new Intent(BROADCAST_LOGIN);
+				intent.putExtra("userid", "");
+				mContext.sendBroadcast(intent);
+				
 			}
 			
 		},param));
@@ -83,18 +81,24 @@ public class SessionManager implements Listener<String> {
 							if (logoutResult != null
 									&& logoutResult.getString("success").equals("1")) {
 								SessionManager.isLoggedIn = false;
-
-								for (LogoutListener listener : logoutListeners)
-									listener.logout(true);
+								Intent intent = new Intent(BROADCAST_LOGOUT);
+								intent.putExtra("success", true);
+								mContext.sendBroadcast(intent);
 
 							} else {
 								Toast.makeText(mContext,
 										"logout failed, " + logoutResult.getString("error"),
 										Toast.LENGTH_SHORT).show();
+								Intent intent = new Intent(BROADCAST_LOGIN);
+								intent.putExtra("success", false);
+								mContext.sendBroadcast(intent);
 							}
 						} catch (JSONException e) {
 							Toast.makeText(mContext, "unexpected error in logout",
 									Toast.LENGTH_LONG).show();
+							Intent intent = new Intent(BROADCAST_LOGIN);
+							intent.putExtra("success", false);
+							mContext.sendBroadcast(intent);
 						}
 					}
 		}, new ErrorListener() {
@@ -103,20 +107,13 @@ public class SessionManager implements Listener<String> {
 			public void onErrorResponse(VolleyError error) {
 				Toast.makeText(mContext, "ÍøÂç´íÎó£¬ÎÞ·¨×¢Ïú",
 						Toast.LENGTH_LONG).show();
-				for (LogoutListener listener : logoutListeners)
-					listener.logout(false);				
+				Intent intent = new Intent(BROADCAST_LOGIN);
+				intent.putExtra("success", false);
+				mContext.sendBroadcast(intent);
 			}
 		}));
 	}
 
-	public interface LoginListener {
-		public boolean removeMe();
-		public void succeeded(String userid);
-		public void failed();
-	}
-	public interface LogoutListener {
-		public void logout(boolean success);
-	}
 	@Override
 	public void onResponse(String response) {
 		loginResponse(response);
@@ -126,34 +123,28 @@ public class SessionManager implements Listener<String> {
 	private void loginResponse(String response) {
 		try {
 			JSONObject loginResult = new JSONObject(response);
-			Iterator<LoginListener> iter = loginListeners.iterator();
 			if (loginResult != null
 					&& loginResult.getString("success").equals("1")) {
 				SessionManager.isLoggedIn = true;
-			
-				while (iter.hasNext()) {
-					LoginListener listener = iter.next();
-					if (listener != null)
-						listener.succeeded(mUsername);		
-					if (listener.removeMe())
-						iter.remove();
-				}
+				Intent intent = new Intent(BROADCAST_LOGIN);
+				intent.putExtra("userid", mUsername);
+				mContext.sendBroadcast(intent);
 
 			} else {
 				Toast.makeText(mContext,
 						"login failed, " + loginResult.getString("error"),
 						Toast.LENGTH_SHORT).show();
-				while (iter.hasNext()) {
-					LoginListener listener = iter.next();
-					if (listener != null)
-						listener.failed();		
-					if (listener.removeMe())
-						iter.remove();
-				}
+				Intent intent = new Intent(BROADCAST_LOGIN);
+				intent.putExtra("userid", "");
+				mContext.sendBroadcast(intent);
+
 			}
 		} catch (JSONException e) {
 			Toast.makeText(mContext, "unexpected error in login",
 					Toast.LENGTH_LONG).show();
+			Intent intent = new Intent(BROADCAST_LOGIN);
+			intent.putExtra("userid", "");
+			mContext.sendBroadcast(intent);
 		}
 	}
 	
