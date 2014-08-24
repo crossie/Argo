@@ -19,14 +19,15 @@ import com.sysu.bbs.argo.view.LeftMenuFragment;
 import com.sysu.bbs.argo.view.LeftMenuFragment.BoardChangedListener;
 import com.sysu.bbs.argo.view.LoginDialog;
 
-public class AddPostActivity extends SwipeBackActivity implements BoardChangedListener {
+public class AddPostActivity extends SwipeBackActivity implements
+		BoardChangedListener {
 
 	private EditText mEditTitle;
 	private EditText mEditContent;
 	private Bundle mNewPostBundle;
-	
+
 	private Button mChooseBoard;
-	
+
 	private BroadcastReceiver mLoginReceiver;
 
 	// String mDraft;
@@ -36,8 +37,10 @@ public class AddPostActivity extends SwipeBackActivity implements BoardChangedLi
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_post);
 
-	/*	getSwipeBackLayout().setEdgeSize(
-				getWindowManager().getDefaultDisplay().getWidth());*/
+		/*
+		 * getSwipeBackLayout().setEdgeSize(
+		 * getWindowManager().getDefaultDisplay().getWidth());
+		 */
 
 		mEditTitle = (EditText) findViewById(R.id.new_post_title);
 		mEditContent = (EditText) findViewById(R.id.new_post_content);
@@ -53,7 +56,6 @@ public class AddPostActivity extends SwipeBackActivity implements BoardChangedLi
 			mNewPostBundle.putString("type", "new");
 			mChooseBoard.setVisibility(View.VISIBLE);
 			mChooseBoard.setText("—°‘Ò∞Ê√Ê");
-			
 
 			return;
 		}
@@ -105,9 +107,9 @@ public class AddPostActivity extends SwipeBackActivity implements BoardChangedLi
 
 			// mDraft = mNewPostBundle.getString("_draft_");
 		}
-		
+
 		mLoginReceiver = new BroadcastReceiver() {
-			
+
 			@Override
 			public void onReceive(Context con, Intent intent) {
 				String action = intent.getAction();
@@ -115,28 +117,34 @@ public class AddPostActivity extends SwipeBackActivity implements BoardChangedLi
 					String userid = intent.getStringExtra("userid");
 					if (userid != null && !userid.equals("")) {
 						sendPost();
-					} 
+					}
 				}
-				
+
 			}
 		};
 
 	}
+
 	@Override
 	public void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
 		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);  
+		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);
 		registerReceiver(mLoginReceiver, intentFilter);
 	}
-	
+
 	@Override
 	public void onStop() {
 		// TODO Auto-generated method stub
 		super.onStop();
-		unregisterReceiver(mLoginReceiver);
+		try {
+			unregisterReceiver(mLoginReceiver);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
+
 	public void onClick(View v) {
 		LeftMenuFragment chooseBoard = null;
 		switch (v.getId()) {
@@ -145,22 +153,20 @@ public class AddPostActivity extends SwipeBackActivity implements BoardChangedLi
 			chooseBoard.show(getSupportFragmentManager(), "chooseboard");
 			break;
 		case R.id.new_post_send:
-			if (mNewPostBundle.getString("boardname") == null || 
-				mNewPostBundle.getString("boardname").equals("")) {
+			if (!SessionManager.isLoggedIn) {
+
+				LoginDialog loginDialog = new LoginDialog();
+				loginDialog.show(getSupportFragmentManager(), "loginDialog");
+				break;
+
+			}
+			if (mNewPostBundle.getString("boardname") == null
+					|| mNewPostBundle.getString("boardname").equals("")) {
 				chooseBoard = new LeftMenuFragment();
 				chooseBoard.show(getSupportFragmentManager(), "chooseboard");
 				break;
 			}
-			if (SessionManager.isLoggedIn) {
-
-				sendPost();
-
-			} else {
-
-				LoginDialog loginDialog = new LoginDialog();
-				loginDialog.show(getSupportFragmentManager(), "loginDialog");
-
-			}
+			sendPost();
 			break;
 		}
 

@@ -18,10 +18,12 @@ import com.sysu.bbs.argo.R;
 
 public class BoardFragment extends Fragment  {
 
-	AbstractBoardFragment mCurrFragment;
-	NormalFragment mNormalFragment;
-	TopicFragment mTopicFragment;
-	String mCurrBoard;
+	private AbstractBoardFragment mCurrFragment;
+	private NormalFragment mNormalFragment;
+	private TopicFragment mTopicFragment;
+	private String mCurrBoard;
+	private static String FRAG_TAG_NORMAL = "FRAG_TAG_NORMAL";
+	private static String FRAG_TAG_TOPIC = "FRAG_TAG_TOPIC";
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -36,13 +38,20 @@ public class BoardFragment extends Fragment  {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		FragmentManager fm = getChildFragmentManager();
 		FragmentTransaction ft = fm.beginTransaction();
+				
 		if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("post_mode", true)) {
-			mNormalFragment = new NormalFragment();
-			ft.add(R.id.frag_board, mNormalFragment, "normal");
+			mNormalFragment = (NormalFragment) fm.findFragmentByTag(FRAG_TAG_NORMAL);
+			if (mNormalFragment == null) {
+				mNormalFragment = new NormalFragment();
+				ft.add(R.id.frag_board, mNormalFragment, FRAG_TAG_NORMAL);
+			}			
 			mCurrFragment = mNormalFragment;
 		} else {
-			mTopicFragment = new TopicFragment();
-			ft.add(R.id.frag_board, mTopicFragment, "topic");
+			mTopicFragment = (TopicFragment) fm.findFragmentByTag(FRAG_TAG_TOPIC);
+			if (mTopicFragment == null) {
+				mTopicFragment = new TopicFragment();
+				ft.add(R.id.frag_board, mTopicFragment, FRAG_TAG_TOPIC);
+			}
 			mCurrFragment = mTopicFragment;
 		}
 		ft.commit();
@@ -91,11 +100,13 @@ public class BoardFragment extends Fragment  {
 		ft.hide(mCurrFragment);
 		switch(item.getItemId()) {
 		case R.id.view_mode_normal:
+			mNormalFragment = (NormalFragment) fm.findFragmentByTag(FRAG_TAG_NORMAL);
 			if (mNormalFragment == null) {
 				mNormalFragment = new NormalFragment();
-				ft.add(R.id.frag_board, mNormalFragment, "normal");
-			}
+				ft.add(R.id.frag_board, mNormalFragment, FRAG_TAG_NORMAL);
+			}			
 			mCurrFragment = mNormalFragment;
+			
 			ft.show(mCurrFragment);
 			ft.commit();
 			fm.executePendingTransactions();
@@ -103,11 +114,13 @@ public class BoardFragment extends Fragment  {
 			mNormalFragment.changeBoard(mCurrBoard);
 			break;
 		case R.id.view_mode_topic:
+			mTopicFragment = (TopicFragment) fm.findFragmentByTag(FRAG_TAG_TOPIC);
 			if (mTopicFragment == null) {
 				mTopicFragment = new TopicFragment();
-				ft.add(R.id.frag_board, mTopicFragment, "topic");
+				ft.add(R.id.frag_board, mTopicFragment, FRAG_TAG_TOPIC);
 			}
 			mCurrFragment = mTopicFragment;
+			
 			ft.show(mCurrFragment);
 			ft.commit();
 			fm.executePendingTransactions();

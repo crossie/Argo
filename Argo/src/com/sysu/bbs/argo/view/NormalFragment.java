@@ -30,7 +30,7 @@ import com.sysu.bbs.argo.adapter.PostAdapter;
 import com.sysu.bbs.argo.api.dao.Post;
 import com.sysu.bbs.argo.api.dao.PostHead;
 
-public class NormalFragment extends AbstractBoardFragment<String> implements
+public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		OnItemClickListener {
 
 	PostAdapter mPostAdapter;
@@ -63,11 +63,11 @@ public class NormalFragment extends AbstractBoardFragment<String> implements
 
 	@Override
 	protected void add2DataList(PostHead postHead, boolean head) {
-		String filename = postHead.getFilename();
+		//String filename = postHead.getFilename();
 		if (head)
-			mDataList.add(0, filename);
+			mDataList.add(0, postHead);
 		else
-			mDataList.add(filename);
+			mDataList.add(postHead);
 
 	}
 
@@ -82,8 +82,11 @@ public class NormalFragment extends AbstractBoardFragment<String> implements
 			ContextMenuInfo menuInfo) {
 		// TODO Auto-generated method stub
 		// 
-		getActivity().getMenuInflater().inflate(R.menu.post_popup, menu);
+		//getActivity().getMenuInflater().inflate(R.menu.post_popup, menu);
 		//super.onCreateContextMenu(menu, v, menuInfo);
+		menu.add(R.layout.frag_normal, R.string.menu_title_share, 0, R.string.menu_title_share);
+		menu.add(R.layout.frag_normal, R.string.menu_title_copy, 0, R.string.menu_title_copy);
+		menu.add(R.layout.frag_normal, R.string.menu_title_topic, 0, R.string.menu_title_topic);
 		
 	}
 
@@ -97,9 +100,12 @@ public class NormalFragment extends AbstractBoardFragment<String> implements
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
+		if (item.getGroupId() != R.layout.frag_normal)
+			return false;
+
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
-		Post post = mPostAdapter.getPost(mPostAdapter.getItem(info.position - 1));
+		Post post = mPostAdapter.getPost(mPostAdapter.getItem(info.position - 1).getFilename());
 		
 		String link = String.format("http://bbs.sysu.edu.cn/bbscon?board=%s&file=%s", post.getBoard(), post.getFilename());
 		String content = "发信人: %s (%s), 信区: %s\n" 
@@ -123,27 +129,27 @@ public class NormalFragment extends AbstractBoardFragment<String> implements
 		Intent intent = null;
 		
 		switch (item.getItemId()) {
-		case R.id.menu_post_copy:		
+		case R.string.menu_title_copy:		
 			ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
 			ClipData clip = ClipData.newPlainText("post", content);
 			cm.setPrimaryClip(clip);
 			Toast.makeText(getActivity(), "复制成功", Toast.LENGTH_SHORT).show();
-			break;
-		case R.id.menu_post_topic:
+			return true;
+		case R.string.menu_title_topic:
 			intent = new Intent(getActivity(), TopicListActivity.class);
 			intent.putExtra("boardname", post.getBoard());
 			intent.putExtra("filename", post.getFilename());
 			
 			startActivity(intent);
-			break;
-		case R.id.menu_post_share:
+			return true;
+		case R.string.menu_title_share:
 			intent = new Intent(Intent.ACTION_SEND);
 
 			intent.setType("text/plain");
 			intent.putExtra(Intent.EXTRA_SUBJECT, "分享内容和链接");
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "分享到..."));
-			break;
+			return true;
 		default:
 			break;
 		}

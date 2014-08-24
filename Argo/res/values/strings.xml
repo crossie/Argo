@@ -47,5 +47,15 @@
     <string name="load_cancelled">加载已取消</string>
     
     <string name="search_hint">搜索版面</string>
+    
+    <string name="label_pull">下拉刷新…</string>
+  	<string name="label_release">放开以刷新…</string>
+  	<string name="label_refreshing">正在载入…</string>
+  	
+    <string name="label_pull_clear_unread">上拉清除未读…</string>
+  	<string name="label_release_clear_unread">放开清除未读…</string>
+  	<string name="label_refreshing_clear_unread">正在清除未读…</string> 	
+  	
+  	<string name="clear_unread">清除未读</string>
 
 </resources>

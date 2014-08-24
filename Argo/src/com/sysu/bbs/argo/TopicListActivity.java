@@ -37,15 +37,16 @@ import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.sysu.bbs.argo.adapter.PostAdapter;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
+import com.sysu.bbs.argo.api.dao.PostHead;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 
 public class TopicListActivity extends SwipeBackActivity implements
 		OnItemClickListener {
 
 	private PullToRefreshListView mTopicListView;
-	private ArrayList<String> mFileNameListDesc;
+	private ArrayList<PostHead> mFileNameListDesc;
 	private PostAdapter mPostAdapterDesc;
-	private ArrayList<String> mFileNameListAsec;
+	private ArrayList<PostHead> mFileNameListAsec;
 	private PostAdapter mPostAdapterAsec;
 	private PostAdapter mCurrAdapter;
 	private String mBoardName;
@@ -66,8 +67,8 @@ public class TopicListActivity extends SwipeBackActivity implements
 		mFileName = intent.getStringExtra("filename");
 
 		mTopicListView = (PullToRefreshListView) findViewById(R.id.activity_topic_list);
-		mFileNameListDesc = new ArrayList<String>();
-		mFileNameListAsec = new ArrayList<String>();
+		mFileNameListDesc = new ArrayList<PostHead>();
+		mFileNameListAsec = new ArrayList<PostHead>();
 		mPostAdapterDesc = new PostAdapter(this,
 				android.R.layout.simple_list_item_1, mFileNameListDesc,
 				mBoardName);
@@ -104,9 +105,10 @@ public class TopicListActivity extends SwipeBackActivity implements
 							if (res.getString("success").equals("1")) {
 								JSONArray resArray = res.getJSONArray("data");
 								for (int i = 0; i < resArray.length(); i++) {
-									mFileNameListDesc.add(0,
-											resArray.getString(i));
-									mFileNameListAsec.add(resArray.getString(i));
+									PostHead tmp = new PostHead(resArray.getString(i));
+									tmp.setBoardname(mBoardName);
+									mFileNameListDesc.add(0, tmp);
+									mFileNameListAsec.add(tmp);
 								}
 								mPostAdapterDesc.notifyDataSetChanged();
 								mPostAdapterAsec.notifyDataSetChanged();
@@ -174,9 +176,12 @@ public class TopicListActivity extends SwipeBackActivity implements
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		// TODO Auto-generated method stub
-		getMenuInflater().inflate(R.menu.post_popup, menu);
-		menu.removeItem(R.id.menu_post_topic);
+		//getMenuInflater().inflate(R.menu.post_popup, menu);
+		//menu.removeItem(R.id.menu_post_topic);
 		// super.onCreateContextMenu(menu, v, menuInfo);
+		menu.add(R.layout.activity_topiclist, R.string.menu_title_copy, 0, R.string.menu_title_copy);
+		menu.add(R.layout.activity_topiclist, R.string.menu_title_share, 0, R.string.menu_title_share);
+
 
 	}
 
@@ -190,11 +195,14 @@ public class TopicListActivity extends SwipeBackActivity implements
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
+		
+		if (item.getGroupId() != R.layout.activity_topiclist)
+			return false;
 
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
 		
-		Post post = mCurrAdapter.getPost(mCurrAdapter.getItem(info.position - 1));
+		Post post = mCurrAdapter.getPost(mCurrAdapter.getItem(info.position - 1).getFilename());
 		
 		String link = String.format("http://bbs.sysu.edu.cn/bbscon?board=%s&file=%s", post.getBoard(), post.getFilename());
 		String content = "发信人: %s (%s), 信区: %s\n" 
@@ -215,22 +223,20 @@ public class TopicListActivity extends SwipeBackActivity implements
 						link,
 						post.getRawcontent());
 		switch (item.getItemId()) {
-		case R.id.menu_post_copy:
+		case R.string.menu_title_copy:
 			ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 			ClipData clip = ClipData.newPlainText("post", content);
 			cm.setPrimaryClip(clip);
 			Toast.makeText(this, "复制成功", Toast.LENGTH_SHORT).show();
-			break;
-		case R.id.menu_post_topic:
-			break;
-		case R.id.menu_post_share:
+			return true;
+		case R.string.menu_title_share:
 			Intent intent = new Intent(Intent.ACTION_SEND);
 
 			intent.setType("text/plain");
 			intent.putExtra(Intent.EXTRA_SUBJECT, "分享内容和链接");
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "分享到..."));
-			break;
+			return true;
 		default:
 			break;
 		}

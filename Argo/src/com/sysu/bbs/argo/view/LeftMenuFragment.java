@@ -3,6 +3,7 @@ package com.sysu.bbs.argo.view;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +21,9 @@ import android.support.v4.app.DialogFragment;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.format.DateUtils;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,6 +36,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AutoCompleteTextView;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.LinearLayout;
 import android.widget.SimpleAdapter;
@@ -40,12 +46,14 @@ import android.widget.Toast;
 
 import com.android.volley.Request.Method;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
-import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.Mode;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener2;
 import com.handmark.pulltorefresh.library.PullToRefreshExpandableListView;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.api.API;
@@ -56,13 +64,14 @@ import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
 
 public class LeftMenuFragment extends DialogFragment implements
-		OnItemClickListener, OnRefreshListener<ExpandableListView>,
+		OnItemClickListener, OnRefreshListener2<ExpandableListView>,
 		OnChildClickListener {
 
 	private final String EN = "EN";
 	private final String CN = "CN";
 	private final String SECCODE = "SECCODE";
 	private final String SECNAME = "SECNAME";
+	private final String UNREAD_MARK = " ..";
 
 	private AutoCompleteTextView mSearchBoard;
 	private PullToRefreshExpandableListView mBoardListView;
@@ -91,6 +100,8 @@ public class LeftMenuFragment extends DialogFragment implements
 
 	private static final String BOARDNAME_TOP10 = "今日十大";
 	private BroadcastReceiver mSessionStatusReceiver;
+	
+	ProgressDialog mClearUnreadProgressDialog = null;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -204,13 +215,13 @@ public class LeftMenuFragment extends DialogFragment implements
 		mBoardListView.getRefreshableView().setAdapter(mBoardAdapter);
 		mBoardListView.setOnRefreshListener(this);
 		mBoardListView.getRefreshableView().setOnChildClickListener(this);
-		// mBoardListView.getRefreshableView().setOnGroupExpandListener(this);
-
+		registerForContextMenu(mBoardListView.getRefreshableView());
+		
 		Map<String, Spanned> favMap = new HashMap<String, Spanned>();
 		favMap.put(SECNAME, Html.fromHtml("收藏夹"));
 		mSectionGroupList.add(favMap);
 		mBoardList.add(mFavList);
-
+		
 		mSessionStatusReceiver = new BroadcastReceiver() {
 
 			@Override
@@ -220,11 +231,13 @@ public class LeftMenuFragment extends DialogFragment implements
 				if (action.equals(SessionManager.BROADCAST_LOGIN)) {
 					String userid = intent.getStringExtra("userid");
 					if (userid != null && !userid.equals("")) {
+						refreshSection();
 						refreshFavorite();
 					}
 				} else if (action.equals(SessionManager.BROADCAST_LOGOUT)) {
 					if (intent.getBooleanExtra("success", false)) {
 						mFavList.clear();
+						refreshSection();
 						mBoardAdapter.notifyDataSetChanged();
 					}
 				} 
@@ -241,15 +254,22 @@ public class LeftMenuFragment extends DialogFragment implements
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);
 		intentFilter.addAction(SessionManager.BROADCAST_LOGOUT);
-
-		getActivity().registerReceiver(mSessionStatusReceiver, intentFilter);
+		try {
+			getActivity().registerReceiver(mSessionStatusReceiver, intentFilter);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void onStop() {
 
 		super.onStop();
-		getActivity().unregisterReceiver(mSessionStatusReceiver);
+		try {
+			getActivity().unregisterReceiver(mSessionStatusReceiver);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -257,6 +277,19 @@ public class LeftMenuFragment extends DialogFragment implements
 
 		mBoardChangedListener = (BoardChangedListener) getActivity();
 		mRequestQueue = Volley.newRequestQueue(getActivity());
+		
+		mBoardListView.setPullLabel(getActivity().getString(R.string.label_pull_clear_unread), 
+				Mode.PULL_FROM_END);
+		mBoardListView.setReleaseLabel(getActivity().getString(R.string.label_release_clear_unread), 
+				Mode.PULL_FROM_END);
+		mBoardListView.setRefreshingLabel(getActivity().getString(R.string.label_refreshing_clear_unread), 
+				Mode.PULL_FROM_END);
+		mBoardListView.setPullLabel(getActivity().getString(R.string.label_pull), 
+				Mode.PULL_FROM_START);
+		mBoardListView.setReleaseLabel(getActivity().getString(R.string.label_release), 
+				Mode.PULL_FROM_START);
+		mBoardListView.setRefreshingLabel(getActivity().getString(R.string.label_refreshing), 
+				Mode.PULL_FROM_START);
 
 		if (SessionManager.isLoggedIn) {
 			refreshFavorite();
@@ -270,7 +303,9 @@ public class LeftMenuFragment extends DialogFragment implements
 	private Map<String, Spanned> newBoardItem(Board board) {
 		Map<String, Spanned> tmp = new HashMap<String, Spanned>();
 		if (board.isUnread())
-			tmp.put(EN, Html.fromHtml(board.getBoardname() + "<font color=\"#FF0000\"><sup> ..</sup></font>" ));
+			tmp.put(EN, Html.fromHtml(board.getBoardname() 
+					+ "<font color=\"#FF0000\"><sup>"
+					+ UNREAD_MARK + "</sup></font>" ));
 		else
 			tmp.put(EN, Html.fromHtml(board.getBoardname()));
 		tmp.put(CN, Html.fromHtml(board.getTitle()));
@@ -360,6 +395,8 @@ public class LeftMenuFragment extends DialogFragment implements
 									Map<String, String> tmpSearch = new HashMap<String, String>();
 									tmpSearch.put(EN, board.getBoardname());
 									tmpSearch.put(CN, board.getTitle());
+									if ("Diary".equals(board.getBoardname()))
+											Log.e("getsection", board.getBoardname());
 									mSearchList.add(tmpSearch);
 								}					
 								mBoardAdapter.notifyDataSetChanged();
@@ -372,19 +409,6 @@ public class LeftMenuFragment extends DialogFragment implements
 					}
 
 				}, null));
-	}
-	@Override
-	public void onRefresh(PullToRefreshBase<ExpandableListView> refreshView) {
-
-		String label = DateUtils.formatDateTime(getActivity(),
-				System.currentTimeMillis(), DateUtils.FORMAT_SHOW_TIME
-						| DateUtils.FORMAT_SHOW_DATE
-						| DateUtils.FORMAT_ABBREV_ALL);
-		refreshView.getLoadingLayoutProxy().setLastUpdatedLabel(label);
-
-		refreshSection();
-		if (SessionManager.isLoggedIn)
-			refreshFavorite();
 	}
 
 	private void refreshFavorite() {
@@ -533,7 +557,7 @@ public class LeftMenuFragment extends DialogFragment implements
 		TextView en = (TextView) item.findViewById(android.R.id.text1);
 		String boardname = en.getText().toString();
 
-		mCurrBoard = boardname.replace(" ..", "");
+		mCurrBoard = boardname.replace(UNREAD_MARK, "");
 		mBoardChangedListener.changeBoard(mCurrBoard);
 		if (getDialog() != null) {
 			getDialog().dismiss();
@@ -564,6 +588,135 @@ public class LeftMenuFragment extends DialogFragment implements
 
 	public interface BoardChangedListener {
 		public void changeBoard(String boardname);
+	}
+
+	@Override
+	public void onPullDownToRefresh(
+			PullToRefreshBase<ExpandableListView> refreshView) {
+		String label = DateUtils.formatDateTime(getActivity(),
+				System.currentTimeMillis(), DateUtils.FORMAT_SHOW_TIME
+						| DateUtils.FORMAT_SHOW_DATE
+						| DateUtils.FORMAT_ABBREV_ALL);
+		refreshView.getLoadingLayoutProxy().setLastUpdatedLabel(label);
+
+		refreshSection();
+		if (SessionManager.isLoggedIn)
+			refreshFavorite();
+		
+	}
+
+	@Override
+	public void onPullUpToRefresh(
+			PullToRefreshBase<ExpandableListView> refreshView) {
+		if (!SessionManager.isLoggedIn) {
+			Toast.makeText(getActivity(), "未登录不能清除未读", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		
+		mClearUnreadProgressDialog = new ProgressDialog(getActivity());
+		mClearUnreadProgressDialog.setMessage("清除中...");
+		mClearUnreadProgressDialog.setCancelable(false);
+		mClearUnreadProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+		mClearUnreadProgressDialog.show();
+		
+/*		for(List<Map<String, Spanned>> boardList: mBoardList) {
+			for (Map<String, Spanned> board: boardList) {
+				String boardname = board.get(EN).toString().replace(UNREAD_MARK, "");
+				clearUnread(boardname);
+			}
+		}
+*/		
+		Iterator<List<Map<String, Spanned>>> groupIterator = mBoardList.iterator();
+		boolean last = false;
+		while (groupIterator.hasNext()) {
+			Iterator<Map<String, Spanned>> childIterator = groupIterator.next().iterator();
+			while (childIterator.hasNext()) {
+				String boardname = childIterator.next().get(EN).toString().replace(UNREAD_MARK, "");
+				clearUnread(boardname, last && !childIterator.hasNext());
+			}
+			if (!groupIterator.hasNext())
+				last = true;
+		}
+		
+		mBoardListView.onRefreshComplete();
+		refreshFavorite();
+		refreshSection();
+	}
+
+	private void clearUnread(String boardname, final boolean dismiss) {
+		
+		HashMap<String, String> param = new HashMap<String, String>();
+		param.put("boardname", boardname);
+		
+		mRequestQueue.add(new StringRequestPost(API.POST.AJAX_BOARD_CLEAR, new Listener<String>() {
+
+			@Override
+			public void onResponse(String response) {
+				if (dismiss)
+					mClearUnreadProgressDialog.dismiss();
+				
+			}
+		}, new ErrorListener() {
+
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				if (dismiss)
+					mClearUnreadProgressDialog.dismiss();				
+			}
+			
+		}, param));
+		
+	}
+	
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		if (SessionManager.isLoggedIn) {
+			menu.add(R.layout.frag_left_menu, R.string.clear_unread, 0, R.string.clear_unread);
+		}
+		//super.onCreateContextMenu(menu, v, menuInfo);
+		
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		if (item.getGroupId() != R.layout.frag_left_menu)
+			return false;
+		ExpandableListContextMenuInfo info = (ExpandableListContextMenuInfo) item
+				.getMenuInfo();
+		switch(item.getItemId()) {
+		case R.string.clear_unread:
+			int groupPos = ExpandableListView.getPackedPositionGroup(info.packedPosition);
+			int childPos = ExpandableListView.getPackedPositionChild(info.packedPosition);
+			
+			mClearUnreadProgressDialog = new ProgressDialog(getActivity());
+			mClearUnreadProgressDialog.setMessage("清除中...");
+			mClearUnreadProgressDialog.setCancelable(false);
+			mClearUnreadProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			mClearUnreadProgressDialog.show();
+			
+			if (ExpandableListView.PACKED_POSITION_TYPE_GROUP 
+					== ExpandableListView.getPackedPositionType(info.packedPosition)) {
+/*				for (Map<String, Spanned> board: mBoardList.get(groupPos)) {
+					String boardname = board.get(EN).toString().replace(UNREAD_MARK, "");
+					clearUnread(boardname);
+				}*/
+				Iterator<Map<String, Spanned>> childIterator = mBoardList.get(groupPos).iterator();
+				while (childIterator.hasNext()) {
+					String boardname = childIterator.next().get(EN).toString().replace(UNREAD_MARK, "");
+					clearUnread(boardname, !childIterator.hasNext());
+				}
+				
+			} else {
+				String boardname = mBoardList.get(groupPos).get(childPos).
+						get(EN).toString().replace(UNREAD_MARK, "");
+				clearUnread(boardname, true);
+			}
+			return true;
+		}
+		
+
+		return super.onContextItemSelected(item);
+
 	}
 
 }

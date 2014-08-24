@@ -8,7 +8,7 @@
     <dimen name="fav_item_padding">10dp</dimen>
     <dimen name="fav_horizontal_spacing">1dp</dimen>
     <dimen name="fav_vertical_spacing">1dp</dimen>
-    <dimen name="menu_offset">80dp</dimen>
+    <dimen name="menu_offset">100dp</dimen>
     <dimen name="shadow_width">15dp</dimen>
     <dimen name="fav_item_large">20sp</dimen>
     <dimen name="fav_item_small">12sp</dimen>

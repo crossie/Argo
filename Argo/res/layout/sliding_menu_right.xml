@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <fragment
+<!--     <fragment
         android:id="@+id/right_menu_list_fragment"
         android:name="com.sysu.bbs.argo.view.RightMenuFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" /> -->
 
 </RelativeLayout>

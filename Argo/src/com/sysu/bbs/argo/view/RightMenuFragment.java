@@ -13,12 +13,14 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,8 +30,9 @@ import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.SettingsActivity;
 import com.sysu.bbs.argo.util.SessionManager;
 
-public class RightMenuFragment extends ListFragment {
+public class RightMenuFragment extends Fragment implements OnItemClickListener {
 
+	private ListView mRightListView = null;
 	private ArrayList<String> mList = new ArrayList<String>();
 	private ArrayAdapter<String> mAdapter;
 	private TextView mUserid;
@@ -43,13 +46,15 @@ public class RightMenuFragment extends ListFragment {
 			Bundle savedInstanceState) {
 
 		View v = inflater.inflate(R.layout.frag_right_menu, container, false);
+		mRightListView = (ListView)v.findViewById(R.id.right_list);
+		mRightListView.setOnItemClickListener(this);
 		mUserid = (TextView) v.findViewById(R.id.right_drawer_userid);
 
 		mList.addAll(Arrays.asList(getResources().getStringArray(
 				R.array.right_menu_items)));
 		mAdapter = new ArrayAdapter<String>(getActivity(),
 				android.R.layout.simple_list_item_1, mList);
-		setListAdapter(mAdapter);
+		mRightListView.setAdapter(mAdapter);
 
 		if (SessionManager.isLoggedIn) {
 			mList.remove(0);
@@ -99,17 +104,26 @@ public class RightMenuFragment extends ListFragment {
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);  
 		intentFilter.addAction(SessionManager.BROADCAST_LOGOUT);  
-		getActivity().registerReceiver(mSessionStatusReceiver, intentFilter);
+		try {
+			getActivity().registerReceiver(mSessionStatusReceiver, intentFilter);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
 	public void onStop() {
 		// TODO Auto-generated method stub
 		super.onStop();
-		getActivity().unregisterReceiver(mSessionStatusReceiver);
+		try {
+			getActivity().unregisterReceiver(mSessionStatusReceiver);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
+	
 	@Override
-	public void onListItemClick(ListView l, View v, int position, long id) {
+	public void onItemClick(AdapterView<?> l, View v, int position, long id) {
 		switch (position) {
 		case 2:
 			startActivity(new Intent(getActivity(), SettingsActivity.class));

@@ -4,16 +4,14 @@
     android:layout_height="match_parent"
     android:orientation="horizontal" >
 
-    
-        <TextView
+    <TextView
         android:id="@+id/unread_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="3dp"
         android:text="aaa"
-        android:textColor="#FF0000"/>
+        android:textColor="#FF0000" />
+
     <include layout="@android:layout/simple_expandable_list_item_1" />
-
-
 
 </LinearLayout>

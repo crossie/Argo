@@ -45,5 +45,6 @@ public final class API {
 		public static final String AJAX_POST_ADD = entry + "/ajax/post/add/";
 		public static final String AJAX_POST_DEL = entry + "/ajax/post/del/";
 		public static final String AJAX_MAIL_SEND = entry + "/ajax/mail/send/";
+		public static final String AJAX_BOARD_CLEAR = entry + "/ajax/board/clear/";
 	}
 }

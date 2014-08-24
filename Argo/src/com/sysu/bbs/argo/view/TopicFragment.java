@@ -79,26 +79,25 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 		
 	}
 
-
-/*	@Override
-	public boolean onLongClick(View listItem) {
-		mListView.getRefreshableView().showContextMenuForChild(listItem);
-		return false;
-	}*/
-	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		// TODO Auto-generated method stub
 		// 
-		getActivity().getMenuInflater().inflate(R.menu.post_popup, menu);
-		menu.removeItem(R.id.menu_post_topic);
+		//getActivity().getMenuInflater().inflate(R.menu.post_popup, menu);
+		//menu.removeItem(R.id.menu_post_topic);
 		//super.onCreateContextMenu(menu, v, menuInfo);
-		
+		menu.add(R.layout.frag_topic, R.string.menu_title_copy, 0, R.string.menu_title_copy);
+		menu.add(R.layout.frag_topic, R.string.menu_title_share, 0, R.string.menu_title_share);
 	}
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
+		if (item.getGroupId() != R.layout.frag_topic)
+			return false;
+		
+		if (!getUserVisibleHint())
+			return false;
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
 		PostHead posthead = mPostHeadAdapter.getItem(info.position - 1);
@@ -122,21 +121,21 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 		Intent intent = null;
 		
 		switch (item.getItemId()) {
-		case R.id.menu_post_copy:		
+		case R.string.menu_title_copy:		
 			ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
 			ClipData clip = ClipData.newPlainText("post", content);
 			cm.setPrimaryClip(clip);
 			Toast.makeText(getActivity(), "复制成功", Toast.LENGTH_SHORT).show();
-			break;
+			return true;
 
-		case R.id.menu_post_share:
+		case R.string.menu_title_share:
 			intent = new Intent(Intent.ACTION_SEND);
 
 			intent.setType("text/plain");
 			intent.putExtra(Intent.EXTRA_SUBJECT, "分享内容和链接");
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "分享到..."));
-			break;
+			return true;
 		default:
 			break;
 		}

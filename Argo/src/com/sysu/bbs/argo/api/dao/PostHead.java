@@ -25,9 +25,11 @@ public class PostHead {
 		update = obj.getString("update");
 		flag = obj.getString("flag");
 		mark = obj.getString("mark");
-		unread = obj.getString("unread");
-		
-		
+		unread = obj.getString("unread");		
+	}
+	public PostHead(String filename) {
+		this.filename = filename;
+		unread = "0";
 	}
 	public String getUpdate() {
 		return update;

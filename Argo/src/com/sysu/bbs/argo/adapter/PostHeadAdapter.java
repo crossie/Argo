@@ -32,8 +32,7 @@ import com.sysu.bbs.argo.TopicListActivity;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.PostHead;
 
-public class PostHeadAdapter extends ArrayAdapter<PostHead> /*implements 
-		OnClickListener*/ {
+public class PostHeadAdapter extends ArrayAdapter<PostHead>  {
 	ArrayList<PostHead> postHeadList;
 	Context con;
 
@@ -74,6 +73,11 @@ public class PostHeadAdapter extends ArrayAdapter<PostHead> /*implements
 		}
 
 		PostHead postHead = postHeadList.get(position);
+		
+		if (postHead.getUnread().equals(""))
+			tmp.setBackgroundResource(R.drawable.post_background);
+		else
+			tmp.setBackgroundResource(R.drawable.post_background_unread);
 
 		holder.tvTitle.setText(postHead.getTitle());
 
@@ -90,16 +94,5 @@ public class PostHeadAdapter extends ArrayAdapter<PostHead> /*implements
 
 		return tmp;
 	}
-
-/*	@Override
-	public void onClick(View view) {
-		final TopicHolder holder = (TopicHolder) view.getTag();
-
-		Intent intent = new Intent(con, TopicListActivity.class);
-		intent.putExtra("boardname", holder.boardname);
-		intent.putExtra("filename", holder.filename);
-
-		con.startActivity(intent);
-	}*/
 
 }

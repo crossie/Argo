@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +32,6 @@ import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.handmark.pulltorefresh.extras.listfragment.PullToRefreshListFragment;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -41,7 +41,7 @@ import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Top10;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 
-public class Top10Fragment extends PullToRefreshListFragment 
+public class Top10Fragment extends Fragment 
 	implements OnRefreshListener<ListView>, OnItemClickListener{
 
 	private Top10Adapter mTop10Adapter;
@@ -55,19 +55,22 @@ public class Top10Fragment extends PullToRefreshListFragment
 			R.color.ranking_8,R.color.ranking_9,R.color.ranking_10,};
 
 	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
 		
-		mPullRefreshListView = getPullToRefreshListView();
+		View  v =  inflater.inflate(R.layout.frag_top10, container, false);
+		mPullRefreshListView = (PullToRefreshListView) v.findViewById(R.id.frag_top10_list);
 		mTop10Adapter = new Top10Adapter(getActivity(), R.layout.item_top10,
 				mTop10List);
 		mPullRefreshListView.setOnRefreshListener(this);
 		mPullRefreshListView.setOnItemClickListener(this);
-		 
-		setListAdapter(mTop10Adapter);
-		setEmptyText("努力加载中...");
-		//setListShown(true);
-
-		// TODO save fragment state
+		mPullRefreshListView.setAdapter(mTop10Adapter);
+		mPullRefreshListView.getRefreshableView().setEmptyView(v.findViewById(R.id.frag_top10_empty));
+		return v;
+	}
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		
 		requestQueue = Volley.newRequestQueue(getActivity());
 		refresh();
 		mPullRefreshListView.setRefreshing();
@@ -89,7 +92,10 @@ public class Top10Fragment extends PullToRefreshListFragment
 					@Override
 					public void onErrorResponse(VolleyError error) {
 						mPullRefreshListView.onRefreshComplete();
-						setEmptyText("加载失败，请下拉重试...");
+						TextView tmp = new TextView(getActivity());
+						tmp.setText("加载失败，请下拉重试...");
+						mPullRefreshListView.getRefreshableView()
+							.setEmptyView(tmp);;
 						super.onErrorResponse(error);
 					}
 				}));
