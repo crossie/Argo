@@ -14,6 +14,8 @@ import org.json.JSONObject;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -44,8 +46,10 @@ import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
 import com.android.volley.Request.Method;
 import com.android.volley.RequestQueue;
+import com.android.volley.RequestQueue.RequestFilter;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
@@ -72,6 +76,8 @@ public class LeftMenuFragment extends DialogFragment implements
 	private final String SECCODE = "SECCODE";
 	private final String SECNAME = "SECNAME";
 	private final String UNREAD_MARK = " ..";
+	//used to control how many left to clear unread status
+	private int mHowmanytogo;
 
 	private AutoCompleteTextView mSearchBoard;
 	private PullToRefreshExpandableListView mBoardListView;
@@ -102,6 +108,8 @@ public class LeftMenuFragment extends DialogFragment implements
 	private BroadcastReceiver mSessionStatusReceiver;
 	
 	ProgressDialog mClearUnreadProgressDialog = null;
+	
+	private boolean mInitialize = false;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -127,8 +135,14 @@ public class LeftMenuFragment extends DialogFragment implements
 				} else {
 					v = convertView;
 				}
-				bindView(v, mSectionGroupList.get(groupPosition), mGroupFrom,
+				try{
+					bindView(v, mSectionGroupList.get(groupPosition), mGroupFrom,
 						mGroupTo);
+				}
+				catch(IndexOutOfBoundsException e) {
+					//TODO don't know why there are such exception occasionally
+					//Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+				}
 				return v;
 			}
 
@@ -142,8 +156,13 @@ public class LeftMenuFragment extends DialogFragment implements
 				} else {
 					v = convertView;
 				}
-				bindView(v, mBoardList.get(groupPosition).get(childPosition),
+				try {
+					bindView(v, mBoardList.get(groupPosition).get(childPosition),
 						mChildFrom, mChildTo);
+				} catch(IndexOutOfBoundsException e) {
+					//TODO don't know why there are such exception occasionally
+					//Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+				}
 				return v;
 			}
 
@@ -231,6 +250,7 @@ public class LeftMenuFragment extends DialogFragment implements
 				if (action.equals(SessionManager.BROADCAST_LOGIN)) {
 					String userid = intent.getStringExtra("userid");
 					if (userid != null && !userid.equals("")) {
+						mInitialize = true;
 						refreshSection();
 						refreshFavorite();
 					}
@@ -258,6 +278,15 @@ public class LeftMenuFragment extends DialogFragment implements
 			getActivity().registerReceiver(mSessionStatusReceiver, intentFilter);
 		} catch(Exception e) {
 			e.printStackTrace();
+		}
+		
+		if (!mInitialize) {
+			mInitialize = true;
+			if (SessionManager.isLoggedIn) {
+				refreshFavorite();
+			}
+			
+			refreshSection();
 		}
 	}
 
@@ -290,12 +319,6 @@ public class LeftMenuFragment extends DialogFragment implements
 				Mode.PULL_FROM_START);
 		mBoardListView.setRefreshingLabel(getActivity().getString(R.string.label_refreshing), 
 				Mode.PULL_FROM_START);
-
-		if (SessionManager.isLoggedIn) {
-			refreshFavorite();
-		}
-		
-		refreshSection();
 
 		super.onActivityCreated(savedInstanceState);
 	}
@@ -610,40 +633,52 @@ public class LeftMenuFragment extends DialogFragment implements
 			PullToRefreshBase<ExpandableListView> refreshView) {
 		if (!SessionManager.isLoggedIn) {
 			Toast.makeText(getActivity(), "未登录不能清除未读", Toast.LENGTH_SHORT).show();
+			mBoardListView.onRefreshComplete();
 			return;
 		}
 		
 		mClearUnreadProgressDialog = new ProgressDialog(getActivity());
-		mClearUnreadProgressDialog.setMessage("清除中...");
-		mClearUnreadProgressDialog.setCancelable(false);
+		mClearUnreadProgressDialog.setCancelable(true);
+		mClearUnreadProgressDialog.setOnCancelListener(new OnCancelListener() {
+			
+			@Override
+			public void onCancel(DialogInterface arg0) {
+				mRequestQueue.cancelAll(new RequestFilter() {
+					
+					@Override
+					public boolean apply(Request<?> request) {
+						// TODO Auto-generated method stub
+						return true;
+					}
+				});
+				Toast.makeText(getActivity(), "已取消", Toast.LENGTH_LONG).show();
+				refreshFavorite();
+				refreshSection();
+				
+			}
+		});
 		mClearUnreadProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 		mClearUnreadProgressDialog.show();
-		
-/*		for(List<Map<String, Spanned>> boardList: mBoardList) {
-			for (Map<String, Spanned> board: boardList) {
-				String boardname = board.get(EN).toString().replace(UNREAD_MARK, "");
-				clearUnread(boardname);
-			}
+			
+		mHowmanytogo = 0;
+		for (List<Map<String, Spanned>> boards: mBoardList) {
+			mHowmanytogo += boards.size();
 		}
-*/		
 		Iterator<List<Map<String, Spanned>>> groupIterator = mBoardList.iterator();
-		boolean last = false;
 		while (groupIterator.hasNext()) {
 			Iterator<Map<String, Spanned>> childIterator = groupIterator.next().iterator();
 			while (childIterator.hasNext()) {
 				String boardname = childIterator.next().get(EN).toString().replace(UNREAD_MARK, "");
-				clearUnread(boardname, last && !childIterator.hasNext());
+				clearUnread(boardname);
 			}
-			if (!groupIterator.hasNext())
-				last = true;
+
 		}
 		
 		mBoardListView.onRefreshComplete();
-		refreshFavorite();
-		refreshSection();
+
 	}
 
-	private void clearUnread(String boardname, final boolean dismiss) {
+	private void clearUnread(final String boardname) {
 		
 		HashMap<String, String> param = new HashMap<String, String>();
 		param.put("boardname", boardname);
@@ -652,16 +687,41 @@ public class LeftMenuFragment extends DialogFragment implements
 
 			@Override
 			public void onResponse(String response) {
-				if (dismiss)
+				mHowmanytogo--; 
+				try {
+					JSONObject res = new JSONObject(response);
+					if (res.getString("success").equals("1"))
+						mClearUnreadProgressDialog.setMessage( boardname + " 处理完成, 还剩 " + mHowmanytogo + "个待处理");
+					else
+						mClearUnreadProgressDialog.setMessage( boardname + " 处理失败");
+				} catch (JSONException e) {
+					mClearUnreadProgressDialog.setMessage( boardname + " 处理失败");
+					e.printStackTrace();
+				}
+								
+				if (mHowmanytogo == 0) {
 					mClearUnreadProgressDialog.dismiss();
+					refreshFavorite();
+					refreshSection();
+				}
 				
 			}
 		}, new ErrorListener() {
 
 			@Override
 			public void onErrorResponse(VolleyError error) {
-				if (dismiss)
-					mClearUnreadProgressDialog.dismiss();				
+				mClearUnreadProgressDialog.dismiss();	
+				Toast.makeText(getActivity(), "网络错误，清除未读失败", Toast.LENGTH_LONG).show();
+				mRequestQueue.cancelAll( new RequestFilter() {
+					
+					@Override
+					public boolean apply(Request<?> request) {
+						// TODO Auto-generated method stub
+						return true;
+					}
+				});
+				refreshFavorite();
+				refreshSection();
 			}
 			
 		}, param));
@@ -689,32 +749,47 @@ public class LeftMenuFragment extends DialogFragment implements
 			int childPos = ExpandableListView.getPackedPositionChild(info.packedPosition);
 			
 			mClearUnreadProgressDialog = new ProgressDialog(getActivity());
-			mClearUnreadProgressDialog.setMessage("清除中...");
-			mClearUnreadProgressDialog.setCancelable(false);
+			mClearUnreadProgressDialog.setCancelable(true);
+			mClearUnreadProgressDialog.setOnCancelListener(new OnCancelListener() {
+				
+				@Override
+				public void onCancel(DialogInterface arg0) {
+					
+					mRequestQueue.cancelAll(new RequestFilter() {
+						
+						@Override
+						public boolean apply(Request<?> request) {
+							// TODO Auto-generated method stub
+							return true;
+						}
+					});
+					//dismiss();
+					Toast.makeText(getActivity(), "已取消", Toast.LENGTH_LONG).show();
+					refreshFavorite();
+					refreshSection();
+					
+				}
+			});
 			mClearUnreadProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 			mClearUnreadProgressDialog.show();
 			
+			mHowmanytogo = mBoardList.get(groupPos).size();
 			if (ExpandableListView.PACKED_POSITION_TYPE_GROUP 
 					== ExpandableListView.getPackedPositionType(info.packedPosition)) {
-/*				for (Map<String, Spanned> board: mBoardList.get(groupPos)) {
-					String boardname = board.get(EN).toString().replace(UNREAD_MARK, "");
-					clearUnread(boardname);
-				}*/
 				Iterator<Map<String, Spanned>> childIterator = mBoardList.get(groupPos).iterator();
 				while (childIterator.hasNext()) {
 					String boardname = childIterator.next().get(EN).toString().replace(UNREAD_MARK, "");
-					clearUnread(boardname, !childIterator.hasNext());
+					clearUnread(boardname);
 				}
 				
 			} else {
 				String boardname = mBoardList.get(groupPos).get(childPos).
 						get(EN).toString().replace(UNREAD_MARK, "");
-				clearUnread(boardname, true);
+				clearUnread(boardname);
 			}
 			return true;
 		}
 		
-
 		return super.onContextItemSelected(item);
 
 	}

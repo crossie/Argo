@@ -4,6 +4,8 @@
     <string name="app_name">Argo</string>
     <string name="hint_user_name">请输入用户名</string>
     <string name="hint_password">请输入密码</string>
+    <string name="hint_title">标题</string>
+    <string name="hint_content">正文</string>    
     <string name="text_login_btn">登录</string>
     <string name="text_save_user_name">记住用户名</string>
     <string name="text_save_password">记住密码</string>
@@ -41,6 +43,7 @@
     <string name="menu_title_share">分享</string>
     <string name="menu_title_copy">复制</string>
     <string name="menu_title_topic">同主题阅读</string>
+    <string name="menu_title_delete">删除</string>
     
     <string name="loading">加载中</string>
     <string name="load_failure">网络错误，加载失败</string>
@@ -52,10 +55,13 @@
   	<string name="label_release">放开以刷新…</string>
   	<string name="label_refreshing">正在载入…</string>
   	
-    <string name="label_pull_clear_unread">上拉清除未读…</string>
-  	<string name="label_release_clear_unread">放开清除未读…</string>
-  	<string name="label_refreshing_clear_unread">正在清除未读…</string> 	
+    <string name="label_pull_clear_unread">上拉清除全站未读…</string>
+  	<string name="label_release_clear_unread">放开清除全站未读…</string>
+  	<string name="label_refreshing_clear_unread">正在清除全站未读…</string> 	
   	
   	<string name="clear_unread">清除未读</string>
-
+  	
+  	<string name="top10_loading">努力加载中…</string>
+	<string name="top10_load_fail">加载失败，请下拉重试…</string>
+	<string name="top10_unknown_error">未知错误，请下拉重试…</string>
 </resources>

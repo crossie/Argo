@@ -41,7 +41,7 @@ abstract public class AbstractBoardFragment<T> extends Fragment
 	protected PullToRefreshListView mListView;
 	protected ArrayAdapter<T> mAdapter;
 
-	private RequestQueue mRequestQueue;
+	protected RequestQueue mRequestQueue;
 	
 
 	@Override

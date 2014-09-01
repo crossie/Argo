@@ -65,9 +65,6 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 
 		}
 
-		// SessionManager.loginListeners.add(this);
-		// SessionManager.logoutListeners.add(this);
-
 		mSessionStatusReceiver = new BroadcastReceiver() {
 
 			@Override

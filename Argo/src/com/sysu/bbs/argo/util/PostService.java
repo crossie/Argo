@@ -183,7 +183,7 @@ public class PostService extends Service {
 			bw.write(bundle.getString("articleid") + "\n");
 			bw.write(bundle.getString("title") + "\n");
 			bw.write(System.currentTimeMillis() + "\n");
-			bw.write(bundle.getString("content") + "\n");
+			bw.write(bundle.getString("content"));
 			
 			
 		} catch (FileNotFoundException e) {

@@ -45,8 +45,9 @@ public class Top10Fragment extends Fragment
 	implements OnRefreshListener<ListView>, OnItemClickListener{
 
 	private Top10Adapter mTop10Adapter;
-	ArrayList<Top10> mTop10List = new ArrayList<Top10>();
-	RequestQueue requestQueue = null;
+	private ArrayList<Top10> mTop10List = new ArrayList<Top10>();
+	private RequestQueue requestQueue = null;
+	private TextView mEmptyView = null;
 	
 	private PullToRefreshListView mPullRefreshListView;
 	
@@ -65,7 +66,11 @@ public class Top10Fragment extends Fragment
 		mPullRefreshListView.setOnRefreshListener(this);
 		mPullRefreshListView.setOnItemClickListener(this);
 		mPullRefreshListView.setAdapter(mTop10Adapter);
-		mPullRefreshListView.getRefreshableView().setEmptyView(v.findViewById(R.id.frag_top10_empty));
+		
+		mEmptyView = (TextView) v.findViewById(R.id.frag_top10_empty);
+		mEmptyView.setText(R.string.top10_loading);
+		mEmptyView.setVisibility(View.VISIBLE);
+		//mPullRefreshListView.getRefreshableView().setEmptyView(mEmptyView);
 		return v;
 	}
 	@Override
@@ -92,10 +97,8 @@ public class Top10Fragment extends Fragment
 					@Override
 					public void onErrorResponse(VolleyError error) {
 						mPullRefreshListView.onRefreshComplete();
-						TextView tmp = new TextView(getActivity());
-						tmp.setText("加载失败，请下拉重试...");
-						mPullRefreshListView.getRefreshableView()
-							.setEmptyView(tmp);;
+						mEmptyView.setText(R.string.top10_load_fail);
+						mEmptyView.setVisibility(View.VISIBLE);
 						super.onErrorResponse(error);
 					}
 				}));
@@ -158,6 +161,7 @@ public class Top10Fragment extends Fragment
 		try {
 			JSONObject result = new JSONObject(response);
 			if (result.getString("success").equals("1")) {
+				mEmptyView.setVisibility(View.GONE);
 				JSONArray top10Array = result.getJSONArray("data");
 				mTop10List.clear();
 				for (int i = 0; i < top10Array.length(); i++) {
@@ -167,6 +171,8 @@ public class Top10Fragment extends Fragment
 				mTop10Adapter.notifyDataSetChanged();
 			}
 		} catch (JSONException e) {
+			mEmptyView.setVisibility(View.VISIBLE);
+			mEmptyView.setText(R.string.top10_unknown_error);
 			Toast.makeText(getActivity(), "unexpected error in getting top 10",
 					Toast.LENGTH_LONG).show();
 		}
@@ -178,6 +184,7 @@ public class Top10Fragment extends Fragment
 				DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_ABBREV_ALL);
 		refreshView.getLoadingLayoutProxy().setLastUpdatedLabel(label);
 		refresh();
+		mEmptyView.setText(R.string.top10_loading);
 	}
 
 	@Override

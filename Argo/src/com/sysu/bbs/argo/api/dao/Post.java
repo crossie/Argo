@@ -30,6 +30,7 @@ public class Post {
 		rawcontent = obj.getString("rawcontent");
 		filename = obj.getString("filename");
 		post_time = obj.getString("post_time");
+		perm_del = obj.getString("perm_del");
 	
 		parse(rawcontent);
 	}

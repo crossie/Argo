@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.R;
@@ -97,6 +98,7 @@ public class BoardFragment extends Fragment  {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		FragmentManager fm = getChildFragmentManager();
 		FragmentTransaction ft = fm.beginTransaction();
+
 		ft.hide(mCurrFragment);
 		switch(item.getItemId()) {
 		case R.id.view_mode_normal:
@@ -138,8 +140,7 @@ public class BoardFragment extends Fragment  {
 
 			startActivity(intent);
 			break;
-		}
-		
+		}		
 		return true;
 	}
 

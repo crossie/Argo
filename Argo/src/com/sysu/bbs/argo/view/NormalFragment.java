@@ -1,13 +1,20 @@
 package com.sysu.bbs.argo.view;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,18 +29,22 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Toast;
 
+import com.android.volley.Response.Listener;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.Mode;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.TopicListActivity;
 import com.sysu.bbs.argo.adapter.PostAdapter;
+import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
 import com.sysu.bbs.argo.api.dao.PostHead;
+import com.sysu.bbs.argo.util.SimpleErrorListener;
+import com.sysu.bbs.argo.util.StringRequestPost;
 
 public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		OnItemClickListener {
 
-	PostAdapter mPostAdapter;
+	private PostAdapter mPostAdapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -80,14 +91,15 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		// TODO Auto-generated method stub
-		// 
-		//getActivity().getMenuInflater().inflate(R.menu.post_popup, menu);
-		//super.onCreateContextMenu(menu, v, menuInfo);
+
 		menu.add(R.layout.frag_normal, R.string.menu_title_share, 0, R.string.menu_title_share);
 		menu.add(R.layout.frag_normal, R.string.menu_title_copy, 0, R.string.menu_title_copy);
 		menu.add(R.layout.frag_normal, R.string.menu_title_topic, 0, R.string.menu_title_topic);
-		
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+		Post post = mPostAdapter.getPost(mPostAdapter.getItem(info.position - 1).getFilename());
+		if (post.getPerm_del().equals("1")) {
+			menu.add(R.layout.frag_normal, R.string.menu_title_delete, 0, R.string.menu_title_delete);
+		} 
 	}
 
 	@Override
@@ -103,9 +115,10 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		if (item.getGroupId() != R.layout.frag_normal)
 			return false;
 
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
+		final AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
-		Post post = mPostAdapter.getPost(mPostAdapter.getItem(info.position - 1).getFilename());
+		final PostHead postHead = mPostAdapter.getItem(info.position - 1);
+		final Post post = mPostAdapter.getPost(postHead.getFilename());
 		
 		String link = String.format("http://bbs.sysu.edu.cn/bbscon?board=%s&file=%s", post.getBoard(), post.getFilename());
 		String content = "·¢ÐÅÈË: %s (%s), ÐÅÇø: %s\n" 
@@ -150,6 +163,45 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "·ÖÏíµ½..."));
 			return true;
+		case R.string.menu_title_delete:
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(
+					getActivity(), AlertDialog.THEME_HOLO_DARK);
+			builder.setMessage("È·ÈÏÉ¾³ý£¿")
+			.setPositiveButton("ÊÇ",new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface arg0, int arg1) {
+					HashMap<String, String> param = new HashMap<String, String>();
+					param.put("boardname", post.getBoard());
+					param.put("filename", post.getFilename());
+					mRequestQueue.add(new StringRequestPost(API.POST.AJAX_POST_DEL, 
+							new Listener<String>() {
+
+								@Override
+								public void onResponse(String response) {
+									try {
+										JSONObject res = new JSONObject(response);
+										if (res.getString("success").equals("1")) {
+		
+										} else {
+											Toast.makeText(getActivity(), "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
+										}
+									} catch (JSONException e) {
+										Toast.makeText(getActivity(), "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
+										e.printStackTrace();
+									}
+								}
+						
+							}, new SimpleErrorListener(getActivity(), "É¾³ýÊ§°Ü"), param));
+					
+														
+				}
+			})
+			.setNegativeButton("·ñ", null)
+			.show();			
+			
+			break;
 		default:
 			break;
 		}

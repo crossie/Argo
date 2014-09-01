@@ -1,17 +1,29 @@
 package com.sysu.bbs.argo;
 
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.Menu;
-import android.widget.Toast;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.sysu.bbs.argo.util.PersistentCookieStore;
+import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.UnreadService;
 import com.sysu.bbs.argo.view.AbstractBoardFragment;
 import com.sysu.bbs.argo.view.BoardFragment;
@@ -44,6 +56,10 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	private static String FRAG_TAG_RIGHT_MENU = "FRAG_TAG_RIGHT_MENU";
 	private static String FRAG_TAG_TOP10 = "FRAG_TAG_TOP10";
 	private static String FRAG_TAG_BOARD = "FRAG_TAG_BOARD";
+	
+	private PersistentCookieStore mCookieStore = null;
+	
+	//private BroadcastReceiver mConnectionReceiver;
 
 	@Override
 	public void finish() {
@@ -75,43 +91,53 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		if (mTop10Fragment == null) {
 			mTop10Fragment = new Top10Fragment();
 			ft.add(R.id.main_layout, mTop10Fragment, FRAG_TAG_TOP10);
-		} else {
-			Log.e("main activity", FRAG_TAG_TOP10);
-			Toast.makeText(this, FRAG_TAG_TOP10, Toast.LENGTH_SHORT).show();
 		}
 
 		mBoardFragment = (BoardFragment) fm.findFragmentByTag(FRAG_TAG_BOARD);
 		if (mBoardFragment == null) {
 			mBoardFragment = new BoardFragment();
 			ft.add(R.id.main_layout, mBoardFragment, FRAG_TAG_BOARD);
-		} else {
-			Log.e("main activity", FRAG_TAG_BOARD);
-			Toast.makeText(this, FRAG_TAG_BOARD, Toast.LENGTH_SHORT).show();
-		}
+		} 
+		
 		mLeftMenuFragment = (LeftMenuFragment) fm.findFragmentByTag(FRAG_TAG_LEFT_MENU);
 		if (mLeftMenuFragment == null) {
 			mLeftMenuFragment = new LeftMenuFragment();
 			ft.add(R.id.sliding_menu_left, mLeftMenuFragment, FRAG_TAG_LEFT_MENU);
-		} else {
-			Log.e("main activity", FRAG_TAG_LEFT_MENU);
-			Toast.makeText(this, FRAG_TAG_LEFT_MENU, Toast.LENGTH_SHORT).show();
-		}
+		} 
+		
 		mRightMenuFragment = (RightMenuFragment) fm.findFragmentByTag(FRAG_TAG_RIGHT_MENU);
 		if (mRightMenuFragment == null) {
 			mRightMenuFragment = new RightMenuFragment();
 			ft.add(R.id.sliding_menu_right, mRightMenuFragment, FRAG_TAG_RIGHT_MENU);
-		} else {
-			Log.e("main activity", FRAG_TAG_RIGHT_MENU);
-			Toast.makeText(this, FRAG_TAG_RIGHT_MENU, Toast.LENGTH_SHORT).show();
-		}
+		} 
+		
 		ft.hide(mBoardFragment);		
 		ft.commit();
-		
+
 		mCurrFragment = mTop10Fragment;
 		
-		//Intent service = new Intent(this, UnreadService.class);
-		//startService(service);
-
+		IntentFilter intentFilter = new IntentFilter(); 
+		intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION); 
+		
+/*		mConnectionReceiver = new BroadcastReceiver() {
+			
+			@Override
+			public void onReceive(Context conn, Intent arg1) {
+				ConnectivityManager connectMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE); 
+				NetworkInfo mobNetInfo = connectMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE); 
+				NetworkInfo wifiNetInfo = connectMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI); 
+				if ((mobNetInfo != null && mobNetInfo.isConnected()) ||
+						(wifiNetInfo != null && wifiNetInfo.isConnected())) { 
+					autoLogin();
+				}
+			}
+		};
+	*/	
+		//registerReceiver(mConnectionReceiver, intentFilter); 
+		mCookieStore = new PersistentCookieStore(this);
+		CookieManager cm = new CookieManager(mCookieStore,CookiePolicy.ACCEPT_ALL);
+		//cm.setCookiePolicy();
+		CookieHandler.setDefault(cm);
 		
 		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
 		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
@@ -121,16 +147,53 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		activityCloseEnterAnimation = activityStyle.getResourceId(0, 0);
 		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
 		activityStyle.recycle();
-
+		
 	}
 	
 	@Override
 	protected void onDestroy() {
 		Intent service = new Intent(this, UnreadService.class);
 		stopService(service);
+		//unregisterReceiver(mConnectionReceiver);
 		super.onDestroy();
 	}
+	
+	@Override
+	protected void onPause() {
+		mCookieStore.persist();
+		super.onPause();
+	}
 
+/*	@Override
+	protected void onResume() {
+		
+		new Handler().postDelayed(new Runnable() {
+			
+			@Override
+			public void run() {
+				autoLogin();
+				
+			}
+		}, 3000);
+		
+		
+		super.onResume();
+	}*/
+	
+/*	private void autoLogin() {
+		if (!SessionManager.isLoggedIn) {
+			//auto login
+			SharedPreferences sp = PreferenceManager
+					.getDefaultSharedPreferences(this);
+			String user = sp.getString("userid", "");
+			String pwd = sp.getString("password", "");
+			if (!user.equals("") &&
+					!pwd.equals("")) {
+				SessionManager sm = new SessionManager(this, user, pwd);
+				sm.login();
+			}
+		}
+	}*/
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		

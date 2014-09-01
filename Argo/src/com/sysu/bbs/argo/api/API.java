@@ -5,7 +5,7 @@ import java.util.HashMap;
 import android.content.Context;
 
 public final class API {
-	private final static String entry = "http://bbs.sysu.edu.cn";
+	public final static String entry = "http://bbs.sysu.edu.cn";
 	Context context;
 	HashMap<String, String> param;
 	public API(Context c,HashMap<String, String> p) {

@@ -126,7 +126,6 @@ public class LoginDialog extends DialogFragment implements OnClickListener {
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(SessionManager.BROADCAST_LOGIN);  
 		getActivity().registerReceiver(mLoginReceiver, intentFilter);
-		Log.i("broadcaster", "onresume login dialog");
 	}
 	
 	@Override

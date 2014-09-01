@@ -72,7 +72,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 
 				String tmp = mNewPostBundle.getString("content");
 
-				tmp = tmp.substring(0, Math.min(200, tmp.length()));
+				tmp = tmp.substring(0, Math.min(150, tmp.length()));
 				tmp = tmp.replaceAll("(?m)^", ": ").replace("\n", "<br/>");
 
 				String quote = "<br/><font color=\"#888888\">【 在 %s (%s) 的大作中提到: 】<br/>%s</font>";
@@ -96,18 +96,30 @@ public class AddPostActivity extends SwipeBackActivity implements
 				parsedContent = tmp[0];
 				if (tmp.length > 1) {
 					parsedQuote = "";
-					for (int i = 1; i < tmp.length; i++)
-						parsedQuote += tmp[i] + "<br/>";
+					for (int i = 1; i < tmp.length; i++) {
+						parsedQuote += tmp[i];
+						if (i < tmp.length - 1)
+							parsedQuote +=  "<br/>";
+					}
 				}
 
 			}
-			content = String.format(content, parsedContent, parsedQuote);
+			content = String.format(content, parsedContent, parsedQuote).replace("\n", "<br/>");
 
 			mEditContent.setText(Html.fromHtml(content));
 
 			// mDraft = mNewPostBundle.getString("_draft_");
 		}
 
+		mEditContent.post(new Runnable() {
+
+			@Override
+			public void run() {
+				mEditContent.requestFocus();
+				
+			}
+			
+		});
 		mLoginReceiver = new BroadcastReceiver() {
 
 			@Override
@@ -153,13 +165,13 @@ public class AddPostActivity extends SwipeBackActivity implements
 			chooseBoard.show(getSupportFragmentManager(), "chooseboard");
 			break;
 		case R.id.new_post_send:
-			if (!SessionManager.isLoggedIn) {
+/*			if (!SessionManager.isLoggedIn) {
 
 				LoginDialog loginDialog = new LoginDialog();
 				loginDialog.show(getSupportFragmentManager(), "loginDialog");
 				break;
 
-			}
+			}*/
 			if (mNewPostBundle.getString("boardname") == null
 					|| mNewPostBundle.getString("boardname").equals("")) {
 				chooseBoard = new LeftMenuFragment();
@@ -189,6 +201,12 @@ public class AddPostActivity extends SwipeBackActivity implements
 		mNewPostBundle.putString("boardname", boardname);
 		mChooseBoard.setText(boardname);
 
+	}
+	
+	@Override
+	public void onBackPressed() {
+		// TODO Auto-generated method stub
+		super.onBackPressed();
 	}
 
 }

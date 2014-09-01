@@ -133,7 +133,7 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 			
 			String s = "", line;
 			while ((line = br.readLine()) != null)
-				s += line;
+				s += line + "\n";
 			post.setRawcontent(s);
 			
 			return post;

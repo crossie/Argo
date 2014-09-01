@@ -51,9 +51,9 @@ public class SessionManager implements Listener<String> {
 		param.put("userid", mUsername);
 		param.put("passwd", mPassword);
 
-		CookieManager cm = new CookieManager();
-		cm.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-		CookieHandler.setDefault(cm);
+		//CookieManager cm = new CookieManager(new PersistentCookieStore(mContext),CookiePolicy.ACCEPT_ALL);
+		//cm.setCookiePolicy();
+		//CookieHandler.setDefault(cm);
 
 		requestQueue.add(new StringRequestPost(API.POST.AJAX_LOGIN, this, new ErrorListener() {
 
@@ -89,14 +89,14 @@ public class SessionManager implements Listener<String> {
 								Toast.makeText(mContext,
 										"logout failed, " + logoutResult.getString("error"),
 										Toast.LENGTH_SHORT).show();
-								Intent intent = new Intent(BROADCAST_LOGIN);
+								Intent intent = new Intent(BROADCAST_LOGOUT);
 								intent.putExtra("success", false);
 								mContext.sendBroadcast(intent);
 							}
 						} catch (JSONException e) {
 							Toast.makeText(mContext, "unexpected error in logout",
 									Toast.LENGTH_LONG).show();
-							Intent intent = new Intent(BROADCAST_LOGIN);
+							Intent intent = new Intent(BROADCAST_LOGOUT);
 							intent.putExtra("success", false);
 							mContext.sendBroadcast(intent);
 						}

@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
@@ -12,9 +13,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -39,6 +42,7 @@ import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
 import com.sysu.bbs.argo.api.dao.PostHead;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
+import com.sysu.bbs.argo.util.StringRequestPost;
 
 public class TopicListActivity extends SwipeBackActivity implements
 		OnItemClickListener {
@@ -175,13 +179,14 @@ public class TopicListActivity extends SwipeBackActivity implements
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		// TODO Auto-generated method stub
-		//getMenuInflater().inflate(R.menu.post_popup, menu);
-		//menu.removeItem(R.id.menu_post_topic);
-		// super.onCreateContextMenu(menu, v, menuInfo);
+
 		menu.add(R.layout.activity_topiclist, R.string.menu_title_copy, 0, R.string.menu_title_copy);
 		menu.add(R.layout.activity_topiclist, R.string.menu_title_share, 0, R.string.menu_title_share);
-
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+		Post post = mCurrAdapter.getPost(mCurrAdapter.getItem(info.position - 1).getFilename());
+		if (post.getPerm_del().equals("1")) {
+			menu.add(R.layout.activity_topiclist, R.string.menu_title_delete, 0, R.string.menu_title_delete);
+		} 
 
 	}
 
@@ -199,10 +204,10 @@ public class TopicListActivity extends SwipeBackActivity implements
 		if (item.getGroupId() != R.layout.activity_topiclist)
 			return false;
 
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
+		final AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
-		
-		Post post = mCurrAdapter.getPost(mCurrAdapter.getItem(info.position - 1).getFilename());
+		final PostHead postHead = mCurrAdapter.getItem(info.position - 1);
+		final Post post = mCurrAdapter.getPost(postHead.getFilename());
 		
 		String link = String.format("http://bbs.sysu.edu.cn/bbscon?board=%s&file=%s", post.getBoard(), post.getFilename());
 		String content = "·¢ÐÅÈË: %s (%s), ÐÅÇø: %s\n" 
@@ -237,6 +242,44 @@ public class TopicListActivity extends SwipeBackActivity implements
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "·ÖÏíµ½..."));
 			return true;
+		case R.string.menu_title_delete:
+			AlertDialog.Builder builder = new AlertDialog.Builder(
+					this, AlertDialog.THEME_HOLO_DARK);
+			builder.setMessage("È·ÈÏÉ¾³ý£¿")
+			.setPositiveButton("ÊÇ",new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface arg0, int arg1) {
+					HashMap<String, String> param = new HashMap<String, String>();
+					param.put("boardname", post.getBoard());
+					param.put("filename", post.getFilename());
+					requestQueue.add(new StringRequestPost(API.POST.AJAX_POST_DEL, 
+							new Listener<String>() {
+
+								@Override
+								public void onResponse(String response) {
+									try {
+										JSONObject res = new JSONObject(response);
+										if (res.getString("success").equals("1")) {
+												
+										} else {
+											Toast.makeText(TopicListActivity.this, "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
+										}
+									} catch (JSONException e) {
+										Toast.makeText(TopicListActivity.this, "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
+										e.printStackTrace();
+									}
+								}
+						
+							}, new SimpleErrorListener(TopicListActivity.this, "É¾³ýÊ§°Ü"), param));
+					
+														
+				}
+			})
+			.setNegativeButton("·ñ", null)
+			.show();			
+			
+			break;
 		default:
 			break;
 		}
