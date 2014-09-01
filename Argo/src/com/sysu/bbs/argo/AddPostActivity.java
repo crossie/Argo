@@ -165,13 +165,13 @@ public class AddPostActivity extends SwipeBackActivity implements
 			chooseBoard.show(getSupportFragmentManager(), "chooseboard");
 			break;
 		case R.id.new_post_send:
-/*			if (!SessionManager.isLoggedIn) {
+			if (!SessionManager.isLoggedIn) {
 
 				LoginDialog loginDialog = new LoginDialog();
 				loginDialog.show(getSupportFragmentManager(), "loginDialog");
 				break;
 
-			}*/
+			}
 			if (mNewPostBundle.getString("boardname") == null
 					|| mNewPostBundle.getString("boardname").equals("")) {
 				chooseBoard = new LeftMenuFragment();

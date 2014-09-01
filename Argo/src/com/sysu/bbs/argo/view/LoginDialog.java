@@ -65,17 +65,20 @@ public class LoginDialog extends DialogFragment implements OnClickListener {
 
 						boolean isSaveUsername = mSaveUsername.isChecked();
 						boolean isSavePassword = mSavePassword.isChecked();
-
+						SharedPreferences sp = PreferenceManager
+								.getDefaultSharedPreferences(getActivity());
+						Editor editor = sp.edit();
 						if (isSaveUsername) {
-							SharedPreferences sp = PreferenceManager
-									.getDefaultSharedPreferences(getActivity());
-							Editor editor = sp.edit();
 							editor.putString("userid", mUsername.getText().toString());
 
 							if (isSavePassword) {
 								editor.putString("password", mPassword.getText().toString());
+							} else {
+								editor.putString("password", "");
 							}
 							editor.commit();
+						} else {
+							editor.putString("userid", "");
 						}
 						dismiss();
 					} else {

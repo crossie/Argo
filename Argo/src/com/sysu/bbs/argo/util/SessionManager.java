@@ -1,18 +1,12 @@
 package com.sysu.bbs.argo.util;
 
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;

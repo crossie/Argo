@@ -9,10 +9,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -56,15 +58,6 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 				android.R.layout.simple_list_item_1, mList);
 		mRightListView.setAdapter(mAdapter);
 
-		if (SessionManager.isLoggedIn) {
-			mList.remove(0);
-			mList.add(0, "×¢Ïú");
-			mAdapter.notifyDataSetChanged();
-
-			mUserid.setText(SessionManager.getUsername());
-
-		}
-
 		mSessionStatusReceiver = new BroadcastReceiver() {
 
 			@Override
@@ -93,6 +86,19 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 		};
 
 		return v;
+	}
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		if (SessionManager.isLoggedIn) {
+			mList.remove(0);
+			mList.add(0, "×¢Ïú");
+			mAdapter.notifyDataSetChanged();
+			SharedPreferences sp = PreferenceManager
+					.getDefaultSharedPreferences(getActivity());
+			mUserid.setText(sp.getString("userid", ""));
+		}
+
+		super.onActivityCreated(savedInstanceState);
 	}
 	@Override
 	public void onResume() {

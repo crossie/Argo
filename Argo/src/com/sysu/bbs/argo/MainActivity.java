@@ -3,18 +3,15 @@ package com.sysu.bbs.argo;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.net.HttpCookie;
+import java.net.URI;
+import java.util.List;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -72,6 +69,10 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		mCookieStore = new PersistentCookieStore(this);
+		CookieManager cm = new CookieManager(mCookieStore,CookiePolicy.ACCEPT_ALL);
+		CookieHandler.setDefault(cm);
+		SessionManager.isLoggedIn = sessionAlive();
 		
 		mSlidingMenu = new SlidingMenu(this);
 		mSlidingMenu.setMenu(R.layout.sliding_menu_left);
@@ -119,26 +120,6 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		IntentFilter intentFilter = new IntentFilter(); 
 		intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION); 
 		
-/*		mConnectionReceiver = new BroadcastReceiver() {
-			
-			@Override
-			public void onReceive(Context conn, Intent arg1) {
-				ConnectivityManager connectMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE); 
-				NetworkInfo mobNetInfo = connectMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE); 
-				NetworkInfo wifiNetInfo = connectMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI); 
-				if ((mobNetInfo != null && mobNetInfo.isConnected()) ||
-						(wifiNetInfo != null && wifiNetInfo.isConnected())) { 
-					autoLogin();
-				}
-			}
-		};
-	*/	
-		//registerReceiver(mConnectionReceiver, intentFilter); 
-		mCookieStore = new PersistentCookieStore(this);
-		CookieManager cm = new CookieManager(mCookieStore,CookiePolicy.ACCEPT_ALL);
-		//cm.setCookiePolicy();
-		CookieHandler.setDefault(cm);
-		
 		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
 		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
 		activityStyle.recycle();
@@ -164,36 +145,6 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		super.onPause();
 	}
 
-/*	@Override
-	protected void onResume() {
-		
-		new Handler().postDelayed(new Runnable() {
-			
-			@Override
-			public void run() {
-				autoLogin();
-				
-			}
-		}, 3000);
-		
-		
-		super.onResume();
-	}*/
-	
-/*	private void autoLogin() {
-		if (!SessionManager.isLoggedIn) {
-			//auto login
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(this);
-			String user = sp.getString("userid", "");
-			String pwd = sp.getString("password", "");
-			if (!user.equals("") &&
-					!pwd.equals("")) {
-				SessionManager sm = new SessionManager(this, user, pwd);
-				sm.login();
-			}
-		}
-	}*/
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		
@@ -242,5 +193,18 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 			mBoardFragment.changeBoard(boardname);
 			
 		invalidateOptionsMenu();
+	}
+
+	public boolean sessionAlive() {		
+		for (URI uri: mCookieStore.getURIs()) {
+			List<HttpCookie> cookies = mCookieStore.get(uri);
+			for (HttpCookie cookie: cookies) {
+				if (cookie.getName().equals("PHPSESSID"))
+					return true;
+			}
+		}	
+		
+		return false;
+		
 	}
 }
