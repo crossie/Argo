@@ -3,26 +3,23 @@ package com.sysu.bbs.argo;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
-import java.net.HttpCookie;
-import java.net.URI;
-import java.util.List;
 
-import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.view.Menu;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.sysu.bbs.argo.util.PersistentCookieStore;
 import com.sysu.bbs.argo.util.SessionManager;
-import com.sysu.bbs.argo.util.UnreadService;
-import com.sysu.bbs.argo.view.AbstractBoardFragment;
 import com.sysu.bbs.argo.view.BoardFragment;
 import com.sysu.bbs.argo.view.LeftMenuFragment;
 import com.sysu.bbs.argo.view.LeftMenuFragment.BoardChangedListener;
@@ -54,7 +51,11 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	private static String FRAG_TAG_TOP10 = "FRAG_TAG_TOP10";
 	private static String FRAG_TAG_BOARD = "FRAG_TAG_BOARD";
 	
+	private static String PREFERENCE_ISLOGGEDIN = "PREFERENCE_ISLOGGEDIN";
+	
 	private PersistentCookieStore mCookieStore = null;
+	
+	private int mBackCounter = 0;
 	
 	//private BroadcastReceiver mConnectionReceiver;
 
@@ -73,6 +74,7 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		CookieManager cm = new CookieManager(mCookieStore,CookiePolicy.ACCEPT_ALL);
 		CookieHandler.setDefault(cm);
 		SessionManager.isLoggedIn = sessionAlive();
+		SessionManager.context = this;
 		
 		mSlidingMenu = new SlidingMenu(this);
 		mSlidingMenu.setMenu(R.layout.sliding_menu_left);
@@ -133,8 +135,8 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	
 	@Override
 	protected void onDestroy() {
-		Intent service = new Intent(this, UnreadService.class);
-		stopService(service);
+		//Intent service = new Intent(this, UnreadService.class);
+		//stopService(service);
 		//unregisterReceiver(mConnectionReceiver);
 		super.onDestroy();
 	}
@@ -142,17 +144,32 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	@Override
 	protected void onPause() {
 		mCookieStore.persist();
+		SharedPreferences sp = getPreferences(0);
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(PREFERENCE_ISLOGGEDIN, SessionManager.isLoggedIn);
+		editor.commit();
 		super.onPause();
 	}
-
+	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		
-		if (mCurrFragment instanceof AbstractBoardFragment)
-			return true;
-		else
-			return false;
+	public void onBackPressed() {
+		mBackCounter++;
+		Log.e("count", "" + mBackCounter);
+		if (mBackCounter > 1)
+			super.onBackPressed();
+		else {
+			Toast.makeText(this, "再按一次退出", Toast.LENGTH_SHORT).show();
+			new Handler().postDelayed(new Runnable() {
+				
+				@Override
+				public void run() {
+					mBackCounter--;
+					
+				}
+			}, 2000);
+		}
 	}
+
 
 	@Override
 	public void changeBoard(String boardname) {
@@ -196,15 +213,18 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	}
 
 	public boolean sessionAlive() {		
-		for (URI uri: mCookieStore.getURIs()) {
+/*		for (URI uri: mCookieStore.getURIs()) {
 			List<HttpCookie> cookies = mCookieStore.get(uri);
 			for (HttpCookie cookie: cookies) {
-				if (cookie.getName().equals("PHPSESSID"))
+				//
+				//只会保存session cookie,所以只要cookie不为空且未过期就可以认为已登录
+				//
+				if (!cookie.hasExpired())
 					return true;
 			}
-		}	
-		
-		return false;
+		}*/	
+		return getPreferences(0).getBoolean(PREFERENCE_ISLOGGEDIN, false);
+
 		
 	}
 }

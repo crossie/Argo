@@ -169,9 +169,7 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 						.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				mLogoutProgressDialog.show();
 
-				SessionManager sm = new SessionManager(getActivity(), null,
-						null);
-				sm.logout();
+				SessionManager.logout();
 			} else {
 				LoginDialog loginDialog = new LoginDialog();
 				loginDialog.show(getFragmentManager(), "loginDialog");

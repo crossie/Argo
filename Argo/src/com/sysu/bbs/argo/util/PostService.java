@@ -24,10 +24,10 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.Volley;
 import com.sysu.bbs.argo.DraftActivity;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.api.API;
@@ -71,8 +71,8 @@ public class PostService extends Service {
 
 		notifyMgr.notify(notificationID, builder.build());
 
-		Volley.newRequestQueue(this).add(
-				new StringRequestPost(API.POST.AJAX_POST_ADD,
+		
+		StringRequestPost addPostRequest =	new StringRequestPost(API.POST.AJAX_POST_ADD,
 						new Listener<String>() {
 							@Override
 							public void onResponse(String response) {
@@ -123,7 +123,11 @@ public class PostService extends Service {
 								stopSelf();
 							}
 
-						}, param));
+						}, param);
+		addPostRequest.setRetryPolicy(new DefaultRetryPolicy(30000, 0, 1));
+		addPostRequest.setTag(API.POST.AJAX_POST_ADD);
+		SessionManager.getRequestQueue().add(addPostRequest);
+		
 		return START_NOT_STICKY;
 	}
 

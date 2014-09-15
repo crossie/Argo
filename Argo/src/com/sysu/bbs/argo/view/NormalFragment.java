@@ -1,6 +1,5 @@
 package com.sysu.bbs.argo.view;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,7 +16,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -29,6 +27,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Response.Listener;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.Mode;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -38,6 +37,7 @@ import com.sysu.bbs.argo.adapter.PostAdapter;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
 import com.sysu.bbs.argo.api.dao.PostHead;
+import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
 
@@ -175,25 +175,30 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 					HashMap<String, String> param = new HashMap<String, String>();
 					param.put("boardname", post.getBoard());
 					param.put("filename", post.getFilename());
-					mRequestQueue.add(new StringRequestPost(API.POST.AJAX_POST_DEL, 
+					StringRequestPost delRequest = new StringRequestPost(API.POST.AJAX_POST_DEL, 
 							new Listener<String>() {
 
 								@Override
-								public void onResponse(String response) {
+								public void onResponse(String response) {									
 									try {
 										JSONObject res = new JSONObject(response);
 										if (res.getString("success").equals("1")) {
-		
+											mAdapter.remove(postHead);
+											mAdapter.notifyDataSetChanged();
+											Toast.makeText(getActivity(), "É¾³ý³É¹¦", Toast.LENGTH_SHORT).show();
 										} else {
-											Toast.makeText(getActivity(), "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
+											Toast.makeText(getActivity(), "É¾³ýÊ§°Ü " + res.getString("error"), Toast.LENGTH_SHORT).show();
 										}
 									} catch (JSONException e) {
-										Toast.makeText(getActivity(), "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
+										Toast.makeText(getActivity(), "É¾³ýÊ§°Ü " + response, Toast.LENGTH_SHORT).show();
 										e.printStackTrace();
 									}
 								}
 						
-							}, new SimpleErrorListener(getActivity(), "É¾³ýÊ§°Ü"), param));
+							}, new SimpleErrorListener(getActivity(), "É¾³ýÊ§°Ü"), param);
+					delRequest.setTag(API.POST.AJAX_POST_DEL);
+					delRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 0, 1));
+					SessionManager.getRequestQueue().add(delRequest);
 					
 														
 				}

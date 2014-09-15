@@ -1,8 +1,19 @@
 package com.sysu.bbs.argo;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+
 import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -205,8 +216,71 @@ public class AddPostActivity extends SwipeBackActivity implements
 	
 	@Override
 	public void onBackPressed() {
-		// TODO Auto-generated method stub
-		super.onBackPressed();
+		String draft = mNewPostBundle.getString("_draft_");
+		if (draft != null && !draft.equals("")) {
+			super.onBackPressed();
+		}
+		AlertDialog.Builder builder = new AlertDialog.Builder(
+				this, AlertDialog.THEME_HOLO_DARK);
+		builder.setMessage("保存草稿？")
+		.setPositiveButton("是", new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface arg0, int arg1) {
+				mNewPostBundle.putString("title", mEditTitle.getText().toString());
+				mNewPostBundle.putString("content", mEditContent.getText().toString());
+				add2Draft(mNewPostBundle);
+				AddPostActivity.super.onBackPressed();
+				
+			}
+		}).setNegativeButton("否", new OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface arg0, int arg1) {
+				AddPostActivity.super.onBackPressed();
+				
+			}
+		})
+		.setNeutralButton("取消", null)
+		.show();
+		
+	}
+	
+	private void add2Draft(Bundle bundle) {
+
+		File draftDir = new File(getFilesDir(), "Draft");
+		if (!draftDir.exists())
+			draftDir.mkdir();
+		File post = new File(draftDir, System.currentTimeMillis() + "");
+		FileOutputStream fos = null; 
+		BufferedWriter bw = null; 
+		
+		try {
+			fos = new FileOutputStream(post);
+			bw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
+			bw.write(bundle.getString("type") + "\n");
+			bw.write(bundle.getString("boardname") + "\n");
+			bw.write(bundle.getString("articleid") + "\n");
+			bw.write(bundle.getString("title") + "\n");
+			bw.write(System.currentTimeMillis() + "\n");
+			bw.write(bundle.getString("content"));
+			
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (bw != null) {
+				try {
+					bw.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 }

@@ -117,9 +117,7 @@ public class LoginDialog extends DialogFragment implements OnClickListener {
 		mLoginProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 		mLoginProgressDialog.show();
 
-		SessionManager sm = new SessionManager(getActivity(), username,
-				password);
-		sm.login();
+		SessionManager.login(username, password);
 	}
 
 	@Override

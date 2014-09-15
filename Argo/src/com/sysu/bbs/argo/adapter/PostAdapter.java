@@ -23,18 +23,18 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Request.Method;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
 import com.sysu.bbs.argo.api.dao.PostHead;
+import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 
 public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListener {
@@ -42,14 +42,14 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 	private static HashMap<String, Post> mPostMap;
 	//how to initialize board name ?
 	private String mBoardName;
-	private RequestQueue mRequestQueue;
+	//private RequestQueue mRequestQueue;
 
 
 	public PostAdapter(Context con, int resource, List<PostHead> objects, String boardname) {
 		super(con, resource, objects);
 		mPostMap = new HashMap<String, Post>();
 		mBoardName = boardname;
-		mRequestQueue = Volley.newRequestQueue(getContext());
+		//mRequestQueue = Volley.newRequestQueue(getContext());
 	}
 
 	private class PostViewHolder {
@@ -155,7 +155,9 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 						super.onErrorResponse(error);
 					}
 				});
-		mRequestQueue.add(holder.request);
+		holder.request.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		holder.request.setTag(API.GET.AJAX_POST_GET);
+		SessionManager.getRequestQueue().add(holder.request);
 	}
 	
 	private void setupHolder(PostViewHolder holder, Post post) {

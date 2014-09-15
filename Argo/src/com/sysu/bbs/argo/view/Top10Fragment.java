@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request.Method;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
@@ -39,6 +40,7 @@ import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.TopicListActivity;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Top10;
+import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 
 public class Top10Fragment extends Fragment 
@@ -46,7 +48,7 @@ public class Top10Fragment extends Fragment
 
 	private Top10Adapter mTop10Adapter;
 	private ArrayList<Top10> mTop10List = new ArrayList<Top10>();
-	private RequestQueue requestQueue = null;
+	//private RequestQueue requestQueue = null;
 	private TextView mEmptyView = null;
 	
 	private PullToRefreshListView mPullRefreshListView;
@@ -76,14 +78,14 @@ public class Top10Fragment extends Fragment
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		
-		requestQueue = Volley.newRequestQueue(getActivity());
+		//requestQueue = Volley.newRequestQueue(getActivity());
 		refresh();
 		mPullRefreshListView.setRefreshing();
 		super.onActivityCreated(savedInstanceState);
 	}
 
 	private void refresh() {
-		requestQueue.add(new StringRequest(Method.GET, API.GET.AJAX_COMM_TOPTEN,
+		StringRequest getTop10 = new StringRequest(Method.GET, API.GET.AJAX_COMM_TOPTEN,
 				new Listener<String>() {
 
 					@Override
@@ -101,7 +103,10 @@ public class Top10Fragment extends Fragment
 						mEmptyView.setVisibility(View.VISIBLE);
 						super.onErrorResponse(error);
 					}
-				}));
+				});
+		getTop10.setTag(API.GET.AJAX_COMM_TOPTEN);
+		getTop10.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		SessionManager.getRequestQueue().add(getTop10);
 	}
 	private class Top10Adapter extends ArrayAdapter<Top10> {
 

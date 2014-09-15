@@ -31,16 +31,16 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request.Method;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response.Listener;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.sysu.bbs.argo.adapter.PostAdapter;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
 import com.sysu.bbs.argo.api.dao.PostHead;
+import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
 
@@ -56,7 +56,7 @@ public class TopicListActivity extends SwipeBackActivity implements
 	private String mBoardName;
 	private String mFileName;
 
-	RequestQueue requestQueue;
+	//RequestQueue requestQueue;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -94,12 +94,12 @@ public class TopicListActivity extends SwipeBackActivity implements
 
 		
 
-		requestQueue = Volley.newRequestQueue(this);
+		//requestQueue = Volley.newRequestQueue(this);
 
 		// loadPost(0, filenames.length);
 		String url = API.GET.AJAX_POST_TOPICLIST + "?boardname=" + mBoardName
 				+ "&filename=" + mFileName;
-		requestQueue.add(new StringRequest(Method.GET, url,
+		StringRequest topicListRequest = new StringRequest(Method.GET, url,
 				new Listener<String>() {
 
 					@Override
@@ -131,7 +131,10 @@ public class TopicListActivity extends SwipeBackActivity implements
 
 					}
 
-				}, new SimpleErrorListener(this, "")));
+				}, new SimpleErrorListener(this, ""));
+		topicListRequest.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		topicListRequest.setTag(API.GET.AJAX_POST_TOPICLIST);
+		SessionManager.getRequestQueue().add(topicListRequest);
 
 	}
 
@@ -171,6 +174,8 @@ public class TopicListActivity extends SwipeBackActivity implements
 			mTopicListView.getRefreshableView().setAdapter(mPostAdapterDesc);
 			mCurrAdapter = mPostAdapterDesc;
 			break;
+		default:
+			return false;
 		}
 
 		return true;
@@ -253,7 +258,7 @@ public class TopicListActivity extends SwipeBackActivity implements
 					HashMap<String, String> param = new HashMap<String, String>();
 					param.put("boardname", post.getBoard());
 					param.put("filename", post.getFilename());
-					requestQueue.add(new StringRequestPost(API.POST.AJAX_POST_DEL, 
+					StringRequestPost delPostRequest = new StringRequestPost(API.POST.AJAX_POST_DEL, 
 							new Listener<String>() {
 
 								@Override
@@ -261,9 +266,13 @@ public class TopicListActivity extends SwipeBackActivity implements
 									try {
 										JSONObject res = new JSONObject(response);
 										if (res.getString("success").equals("1")) {
-												
+											mFileNameListAsec.remove(postHead);
+											mFileNameListDesc.remove(postHead);
+											mPostAdapterDesc.notifyDataSetChanged();
+											mPostAdapterAsec.notifyDataSetChanged();
+											Toast.makeText(TopicListActivity.this, "É¾³ý³É¹¦", Toast.LENGTH_SHORT).show();	
 										} else {
-											Toast.makeText(TopicListActivity.this, "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
+											Toast.makeText(TopicListActivity.this, "É¾³ýÊ§°Ü " + res.getString("error"), Toast.LENGTH_SHORT).show();
 										}
 									} catch (JSONException e) {
 										Toast.makeText(TopicListActivity.this, "É¾³ýÊ§°Ü", Toast.LENGTH_SHORT).show();
@@ -271,7 +280,10 @@ public class TopicListActivity extends SwipeBackActivity implements
 									}
 								}
 						
-							}, new SimpleErrorListener(TopicListActivity.this, "É¾³ýÊ§°Ü"), param));
+							}, new SimpleErrorListener(TopicListActivity.this, "É¾³ýÊ§°Ü"), param);
+					delPostRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 0, 1));
+					delPostRequest.setTag(API.POST.AJAX_POST_DEL);
+					SessionManager.getRequestQueue().add(delPostRequest);
 					
 														
 				}

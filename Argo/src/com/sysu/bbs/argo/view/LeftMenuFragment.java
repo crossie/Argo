@@ -1,7 +1,6 @@
 package com.sysu.bbs.argo.view;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +22,6 @@ import android.support.v4.app.DialogFragment;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -46,15 +44,12 @@ import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request.Method;
-import com.android.volley.RequestQueue;
-import com.android.volley.RequestQueue.RequestFilter;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.Mode;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener2;
@@ -98,11 +93,11 @@ public class LeftMenuFragment extends DialogFragment implements
 	//private TextView mMailHeader;
 
 	//private String mUserid = null;
-	private String mCurrBoard;
+	private String mCurrBoard = BOARDNAME_TOP10;
 
 	BoardChangedListener mBoardChangedListener;
 
-	private RequestQueue mRequestQueue = null;
+	//private RequestQueue mRequestQueue = null;
 
 	private static final String BOARDNAME_TOP10 = "今日十大";
 	private BroadcastReceiver mSessionStatusReceiver;
@@ -263,6 +258,8 @@ public class LeftMenuFragment extends DialogFragment implements
 				} 
 			}
 		};
+		
+		setHasOptionsMenu(true);
 
 		return v;
 	}
@@ -305,7 +302,7 @@ public class LeftMenuFragment extends DialogFragment implements
 	public void onActivityCreated(Bundle savedInstanceState) {
 
 		mBoardChangedListener = (BoardChangedListener) getActivity();
-		mRequestQueue = Volley.newRequestQueue(getActivity());
+		//mRequestQueue = Volley.newRequestQueue(getActivity());
 		
 		mBoardListView.setPullLabel(getActivity().getString(R.string.label_pull_clear_unread), 
 				Mode.PULL_FROM_END);
@@ -337,7 +334,7 @@ public class LeftMenuFragment extends DialogFragment implements
 
 	private void refreshSection() {
 
-		mRequestQueue.add(new StringRequest(Method.GET,
+		StringRequest getSections = new StringRequest(Method.GET,
 				API.GET.AJAX_BOARD_ALLS, new Listener<String>() {
 					@Override
 					public void onResponse(String response) {
@@ -392,11 +389,14 @@ public class LeftMenuFragment extends DialogFragment implements
 							mBoardListView.onRefreshComplete();
 						super.onErrorResponse(error);
 					}
-				}));
+				});
+		getSections.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		getSections.setTag(API.GET.AJAX_BOARD_ALLS);
+		SessionManager.getRequestQueue().add(getSections);
 	}
 	private void getSection(String seccode, final int grouppos) {
 		String url = API.GET.AJAX_BOARD_GETBYSEC + "?sec_code=" + seccode;
-		mRequestQueue.add(new StringRequest(Method.GET, url,
+		StringRequest getSection = new StringRequest(Method.GET, url,
 				new Listener<String>() {
 
 					@Override
@@ -418,8 +418,6 @@ public class LeftMenuFragment extends DialogFragment implements
 									Map<String, String> tmpSearch = new HashMap<String, String>();
 									tmpSearch.put(EN, board.getBoardname());
 									tmpSearch.put(CN, board.getTitle());
-									if ("Diary".equals(board.getBoardname()))
-											Log.e("getsection", board.getBoardname());
 									mSearchList.add(tmpSearch);
 								}					
 								mBoardAdapter.notifyDataSetChanged();
@@ -431,12 +429,15 @@ public class LeftMenuFragment extends DialogFragment implements
 
 					}
 
-				}, null));
+				}, null);
+		getSection.setTag(API.GET.AJAX_BOARD_GETBYSEC);
+		getSection.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		SessionManager.getRequestQueue().add(getSection);
 	}
 
 	private void refreshFavorite() {
 
-		mRequestQueue.add(new StringRequest(Method.GET, API.GET.AJAX_USER_FAV,
+		StringRequest getFavorite = new StringRequest(Method.GET, API.GET.AJAX_USER_FAV,
 				new Listener<String>() {
 					@Override
 					public void onResponse(String response) {
@@ -465,7 +466,10 @@ public class LeftMenuFragment extends DialogFragment implements
 						mBoardListView.onRefreshComplete();
 						super.onErrorResponse(error);
 					}
-				}));
+				});
+		getFavorite.setTag(API.GET.AJAX_USER_FAV);
+		getFavorite.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		SessionManager.getRequestQueue().add(getFavorite);
 	}
 
 	private void initFav(String string) {
@@ -490,17 +494,23 @@ public class LeftMenuFragment extends DialogFragment implements
 	@Override
 	public void onPrepareOptionsMenu(Menu menu) {
 
+		MenuItem deleteFavorite = menu.findItem(R.id.delete_from_favorite);
+		MenuItem addToFavorite = menu.findItem(R.id.add_to_favorite);
+		if (mCurrBoard.equals(BOARDNAME_TOP10)) {
+			deleteFavorite.setVisible(false);
+			addToFavorite.setVisible(false);
+			return;
+		}
 		boolean isFavorite = false;
 		List<Map<String, Spanned>> favoriteList = mBoardList.get(0);
 		for (Map<String, Spanned> item : favoriteList) {
-			Collection<Spanned> favorites = item.values();
-			if (favorites.contains(mCurrBoard)) {
+			String boardname = item.get(EN).toString().replace(UNREAD_MARK, "");
+			if (boardname.equals(mCurrBoard)) {
 				isFavorite = true;
 				break;
 			}
 		}
-		MenuItem deleteFavorite = menu.findItem(R.id.delete_from_favorite);
-		MenuItem addToFavorite = menu.findItem(R.id.add_to_favorite);
+
 		if (isFavorite) {
 			deleteFavorite.setVisible(true);
 			addToFavorite.setVisible(false);
@@ -522,8 +532,9 @@ public class LeftMenuFragment extends DialogFragment implements
 		HashMap<String, String> param = new HashMap<String, String>();
 		param.put("boardname", mCurrBoard);
 		String url = null;
+		final int itemId = item.getItemId();
 
-		switch (item.getItemId()) {
+		switch (itemId) {
 		case R.id.delete_from_favorite:
 			url = API.POST.AJAX_USER_DELFAV;
 			break;
@@ -535,24 +546,27 @@ public class LeftMenuFragment extends DialogFragment implements
 
 		}
 
-		mRequestQueue.add(new StringRequestPost(url, new Listener<String>() {
+		StringRequestPost favOp = new StringRequestPost(url, new Listener<String>() {
 
 			@Override
 			public void onResponse(String response) {
 				try {
 					JSONObject res = new JSONObject(response);
 					if (res.getString("success").equals("1")) {
-						Toast.makeText(getActivity(), "操作成功", Toast.LENGTH_LONG)
+						Toast.makeText(getActivity(), "操作成功", Toast.LENGTH_SHORT)
 								.show();
-
-						for (Map<String, Spanned> item : mFavList) {
-							Collection<Spanned> favorites = item.values();
-							if (favorites.contains(mCurrBoard)) {
-								mFavList.remove(item);
-								mBoardAdapter.notifyDataSetChanged();
-								getActivity().invalidateOptionsMenu();
-								break;
+						if (itemId == R.id.delete_from_favorite) {
+							for (Map<String, Spanned> item : mFavList) {
+								String boardname = item.get(EN).toString().replace(UNREAD_MARK, "");
+								if (boardname.equals(mCurrBoard)) {
+									mFavList.remove(item);
+									mBoardAdapter.notifyDataSetChanged();
+									getActivity().invalidateOptionsMenu();
+									break;
+								}
 							}
+						} else if (itemId == R.id.add_to_favorite) {
+							refreshFavorite();
 						}
 					} else {
 						Toast.makeText(getActivity(),
@@ -568,9 +582,13 @@ public class LeftMenuFragment extends DialogFragment implements
 
 			}
 
-		}, new SimpleErrorListener(getActivity(), null), param));
+		}, new SimpleErrorListener(getActivity(), null), param);
+		
+		favOp.setTag(url);
+		favOp.setRetryPolicy(new DefaultRetryPolicy(15000, 0, 2));
+		SessionManager.getRequestQueue().add(favOp);
 
-		return false;
+		return true;
 	}
 
 	@Override
@@ -594,7 +612,7 @@ public class LeftMenuFragment extends DialogFragment implements
 		TextView en = (TextView) view.findViewById(android.R.id.text1);
 		String boardname = en.getText().toString();
 		mSearchBoard.setText("");
-		mCurrBoard = boardname;
+		mCurrBoard = boardname.replace(UNREAD_MARK, "");
 		mBoardChangedListener.changeBoard(boardname);
 		if (getDialog() != null) {
 			getDialog().dismiss();
@@ -643,15 +661,8 @@ public class LeftMenuFragment extends DialogFragment implements
 			
 			@Override
 			public void onCancel(DialogInterface arg0) {
-				mRequestQueue.cancelAll(new RequestFilter() {
-					
-					@Override
-					public boolean apply(Request<?> request) {
-						// TODO Auto-generated method stub
-						return true;
-					}
-				});
-				Toast.makeText(getActivity(), "已取消", Toast.LENGTH_LONG).show();
+				SessionManager.getRequestQueue().cancelAll(API.POST.AJAX_BOARD_CLEAR);
+				Toast.makeText(getActivity(), "已取消", Toast.LENGTH_SHORT).show();
 				refreshFavorite();
 				refreshSection();
 				
@@ -683,7 +694,7 @@ public class LeftMenuFragment extends DialogFragment implements
 		HashMap<String, String> param = new HashMap<String, String>();
 		param.put("boardname", boardname);
 		
-		mRequestQueue.add(new StringRequestPost(API.POST.AJAX_BOARD_CLEAR, new Listener<String>() {
+		StringRequestPost clearUnreadRequest = new StringRequestPost(API.POST.AJAX_BOARD_CLEAR, new Listener<String>() {
 
 			@Override
 			public void onResponse(String response) {
@@ -711,20 +722,17 @@ public class LeftMenuFragment extends DialogFragment implements
 			@Override
 			public void onErrorResponse(VolleyError error) {
 				mClearUnreadProgressDialog.dismiss();	
-				Toast.makeText(getActivity(), "网络错误，清除未读失败", Toast.LENGTH_LONG).show();
-				mRequestQueue.cancelAll( new RequestFilter() {
-					
-					@Override
-					public boolean apply(Request<?> request) {
-						// TODO Auto-generated method stub
-						return true;
-					}
-				});
+				Toast.makeText(getActivity(), "网络错误，清除未读失败", Toast.LENGTH_SHORT).show();
+				SessionManager.getRequestQueue().cancelAll(API.POST.AJAX_BOARD_CLEAR);
 				refreshFavorite();
 				refreshSection();
 			}
 			
-		}, param));
+		}, param);
+		
+		clearUnreadRequest.setTag(API.POST.AJAX_BOARD_CLEAR);
+		clearUnreadRequest.setRetryPolicy(new DefaultRetryPolicy(10000, 0, 2));
+		SessionManager.getRequestQueue().add(clearUnreadRequest);
 		
 	}
 	
@@ -755,16 +763,9 @@ public class LeftMenuFragment extends DialogFragment implements
 				@Override
 				public void onCancel(DialogInterface arg0) {
 					
-					mRequestQueue.cancelAll(new RequestFilter() {
-						
-						@Override
-						public boolean apply(Request<?> request) {
-							// TODO Auto-generated method stub
-							return true;
-						}
-					});
+					SessionManager.getRequestQueue().cancelAll(API.POST.AJAX_BOARD_CLEAR);
 					//dismiss();
-					Toast.makeText(getActivity(), "已取消", Toast.LENGTH_LONG).show();
+					Toast.makeText(getActivity(), "已取消", Toast.LENGTH_SHORT).show();
 					refreshFavorite();
 					refreshSection();
 					

@@ -9,14 +9,12 @@ import java.net.CookieManager;
 import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
-import android.util.Log;
 
 public class PersistentCookieStore implements CookieStore {
 	private CookieStore store;
@@ -39,7 +37,7 @@ public class PersistentCookieStore implements CookieStore {
 			String encodedCookie = cookiePref.getString(COOKIE_NAME_PREFIX + name, null);
 			if (encodedCookie != null) {
 				HttpCookie decodedCookie = decodeCookie(encodedCookie);
-				if (decodedCookie != null)
+				if (decodedCookie != null && !decodedCookie.hasExpired())
 					store.add(URI.create(name), decodedCookie);
 			}
 			

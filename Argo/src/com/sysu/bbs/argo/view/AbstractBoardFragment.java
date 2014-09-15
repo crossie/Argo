@@ -9,27 +9,21 @@ import org.json.JSONObject;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.format.DateUtils;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request.Method;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
-import com.handmark.pulltorefresh.library.PullToRefreshBase.Mode;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener2;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
-import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.PostHead;
+import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 
 abstract public class AbstractBoardFragment<T> extends Fragment 
@@ -41,12 +35,12 @@ abstract public class AbstractBoardFragment<T> extends Fragment
 	protected PullToRefreshListView mListView;
 	protected ArrayAdapter<T> mAdapter;
 
-	protected RequestQueue mRequestQueue;
+	//protected RequestQueue mRequestQueue;
 	
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-		mRequestQueue = Volley.newRequestQueue(getActivity());
+		//mRequestQueue = Volley.newRequestQueue(getActivity());
 		super.onActivityCreated(savedInstanceState);
 	}
 	@Override
@@ -101,7 +95,7 @@ abstract public class AbstractBoardFragment<T> extends Fragment
 			url = url + "&start=" + start;
 		
 		
-		mRequestQueue.add(new StringRequest(Method.GET, url,
+		StringRequest loadPost = new StringRequest(Method.GET, url,
 				new Listener<String>() {
 
 					@Override
@@ -162,7 +156,10 @@ abstract public class AbstractBoardFragment<T> extends Fragment
 						mLastIndex = -1;
 						super.onErrorResponse(error);
 					}
-				}));
+				});
+		loadPost.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		loadPost.setTag(API.GET.AJAX_POST_LIST);
+		SessionManager.getRequestQueue().add(loadPost);
 			
 	}
 	
