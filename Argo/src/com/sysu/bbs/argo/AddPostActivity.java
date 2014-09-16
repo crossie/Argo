@@ -121,6 +121,12 @@ public class AddPostActivity extends SwipeBackActivity implements
 
 			// mDraft = mNewPostBundle.getString("_draft_");
 		}
+		
+		if (mNewPostBundle.getString("boardname", "null").equals("null")) {
+			mNewPostBundle.putString("type", "new");
+			mChooseBoard.setVisibility(View.VISIBLE);
+			mChooseBoard.setText("—°‘Ò∞Ê√Ê");
+		}
 
 		mEditContent.post(new Runnable() {
 
