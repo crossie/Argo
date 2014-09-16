@@ -14,7 +14,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
@@ -154,7 +153,7 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	@Override
 	public void onBackPressed() {
 		mBackCounter++;
-		Log.e("count", "" + mBackCounter);
+		//Log.e("count", "" + mBackCounter);
 		if (mBackCounter > 1)
 			super.onBackPressed();
 		else {
