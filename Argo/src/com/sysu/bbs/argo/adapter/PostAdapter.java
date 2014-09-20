@@ -259,7 +259,7 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 
 		getContext().startActivity(intent);
 	}
-
+/*
 	public String getBoardName() {
 		return mBoardName;
 	}
@@ -267,7 +267,7 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 	public void setBoardName(String boardName) {
 		this.mBoardName = boardName;
 	}
-	
+*/	
 	public Post getPost(String filename) {
 		return mPostMap.get(filename);
 	}

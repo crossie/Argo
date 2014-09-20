@@ -46,6 +46,10 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 
 	private PostAdapter mPostAdapter;
 
+	public NormalFragment(String boardname) {
+		super(boardname);
+		// TODO Auto-generated constructor stub
+	}
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -82,12 +86,12 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 
 	}
 
-	@Override
+/*	@Override
 	protected void setAdapterBoard(String board) {
-		mPostAdapter.setBoardName(board);
+		//mPostAdapter.setBoardName(board);
 
 	}
-
+*/
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {

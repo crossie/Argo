@@ -30,8 +30,14 @@ import com.sysu.bbs.argo.api.dao.PostHead;
 
 public class TopicFragment extends AbstractBoardFragment<PostHead> implements OnItemClickListener {
 
-	PostHeadAdapter mPostHeadAdapter;
+
+	private PostHeadAdapter mPostHeadAdapter;
 	
+	public TopicFragment(String boardname) {
+		super(boardname);
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -73,12 +79,12 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 		
 	}
 
-	@Override
+/*	@Override
 	protected void setAdapterBoard(String board) {
 		// TODO Auto-generated method stub
 		
 	}
-
+*/
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {

@@ -4,41 +4,53 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 
-import android.content.IntentFilter;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+import android.app.ActionBar.TabListener;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.view.View;
 import android.widget.Toast;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.sysu.bbs.argo.adapter.AbstractFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.BoardFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.HomeFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.PrivateFragmentPagerAdapter;
 import com.sysu.bbs.argo.util.PersistentCookieStore;
 import com.sysu.bbs.argo.util.SessionManager;
-import com.sysu.bbs.argo.view.BoardFragment;
 import com.sysu.bbs.argo.view.LeftMenuFragment;
 import com.sysu.bbs.argo.view.LeftMenuFragment.BoardChangedListener;
-import com.sysu.bbs.argo.view.MailFragment;
 import com.sysu.bbs.argo.view.RightMenuFragment;
-import com.sysu.bbs.argo.view.Top10Fragment;
+/**
+ * 主程序入口
+ * @author scim
+ *
+ */
+public class MainActivity extends FragmentActivity 
+	implements BoardChangedListener, OnPageChangeListener, TabListener {
 
-public class MainActivity extends FragmentActivity implements BoardChangedListener {
-
-	private BoardFragment mBoardFragment = null;
-	private Top10Fragment mTop10Fragment = null;
-	private MailFragment mMailFragment = null;
-	private Fragment mCurrFragment = null;
 	private LeftMenuFragment mLeftMenuFragment = null;
 	private RightMenuFragment mRightMenuFragment = null;
-	
-	//private Fragment mLeftMenuFragment = null;
+
+	private ViewPager mHomeViewPager = null;
+	private ViewPager mBoardViewPager = null;
+	//private ViewPager mCurrViewPager = null;
+
+	private BoardFragmentPagerAdapter mBoardPagerAdapter = null;
+	private HomeFragmentPagerAdapter mHomePagerAdapter = null;
+	private PrivateFragmentPagerAdapter mPrivatePagerAdapter = null;
+	//private AbstractFragmentPagerAdapter mCurrentPagerAdapter = null;
 	
 	private SlidingMenu mSlidingMenu;
-	//private SearchView mSearchBoard;
 	
 	private String mCurrBoard;
 	
@@ -47,16 +59,16 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	
 	private static String FRAG_TAG_LEFT_MENU = "FRAG_TAG_LEFT_MENU";
 	private static String FRAG_TAG_RIGHT_MENU = "FRAG_TAG_RIGHT_MENU";
-	private static String FRAG_TAG_TOP10 = "FRAG_TAG_TOP10";
-	private static String FRAG_TAG_BOARD = "FRAG_TAG_BOARD";
 	
 	private static String PREFERENCE_ISLOGGEDIN = "PREFERENCE_ISLOGGEDIN";
 	
 	private PersistentCookieStore mCookieStore = null;
-	
+	/**
+	 * 用于实现按两次返回键退出 <br/>
+	 * 大于2 时退出
+	 */
 	private int mBackCounter = 0;
 	
-	//private BroadcastReceiver mConnectionReceiver;
 
 	@Override
 	public void finish() {
@@ -75,11 +87,14 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		SessionManager.isLoggedIn = sessionAlive();
 		SessionManager.context = this;
 		
+
+		
 		mSlidingMenu = new SlidingMenu(this);
 		mSlidingMenu.setMenu(R.layout.sliding_menu_left);
 		mSlidingMenu.setSecondaryMenu(R.layout.sliding_menu_right);
 		mSlidingMenu.setMode(SlidingMenu.LEFT_RIGHT);
-		mSlidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+		//mSlidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+		mSlidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 		//mSlidingMenu.setShadowDrawable(R.drawable.shadow);
 		mSlidingMenu.setShadowWidthRes(R.dimen.shadow_width);
 		//mSlidingMenu.setSecondaryShadowDrawable(R.drawable.shadowright);
@@ -88,19 +103,7 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 
 		FragmentManager fm = getSupportFragmentManager();
 		FragmentTransaction ft = fm.beginTransaction();
-		
-		mTop10Fragment = (Top10Fragment) fm.findFragmentByTag(FRAG_TAG_TOP10);
-		if (mTop10Fragment == null) {
-			mTop10Fragment = new Top10Fragment();
-			ft.add(R.id.main_layout, mTop10Fragment, FRAG_TAG_TOP10);
-		}
-
-		mBoardFragment = (BoardFragment) fm.findFragmentByTag(FRAG_TAG_BOARD);
-		if (mBoardFragment == null) {
-			mBoardFragment = new BoardFragment();
-			ft.add(R.id.main_layout, mBoardFragment, FRAG_TAG_BOARD);
-		} 
-		
+	
 		mLeftMenuFragment = (LeftMenuFragment) fm.findFragmentByTag(FRAG_TAG_LEFT_MENU);
 		if (mLeftMenuFragment == null) {
 			mLeftMenuFragment = new LeftMenuFragment();
@@ -113,14 +116,25 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 			ft.add(R.id.sliding_menu_right, mRightMenuFragment, FRAG_TAG_RIGHT_MENU);
 		} 
 		
-		ft.hide(mBoardFragment);		
 		ft.commit();
-
-		mCurrFragment = mTop10Fragment;
 		
-		IntentFilter intentFilter = new IntentFilter(); 
-		intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION); 
+		getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		
+		mBoardPagerAdapter = new BoardFragmentPagerAdapter(fm);
+		mHomePagerAdapter = new HomeFragmentPagerAdapter(fm);
+		mPrivatePagerAdapter = new PrivateFragmentPagerAdapter(fm);
+		
+		mHomeViewPager = (ViewPager) findViewById(R.id.home_view_pager);
+		mHomeViewPager.setOnPageChangeListener(this);
+		mHomeViewPager.setAdapter(mHomePagerAdapter);
+		//mCurrViewPager = mHomeViewPager;
+		initTab(mHomePagerAdapter.getTabTitle());
+		
+		mBoardViewPager = (ViewPager) findViewById(R.id.board_view_pager);
+		mBoardViewPager.setOnPageChangeListener(this);
+		mBoardViewPager.setAdapter(mBoardPagerAdapter);
+		
+		//实现退出时的动画,不明白为什么要这样写才行
 		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
 		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
 		activityStyle.recycle();
@@ -130,14 +144,6 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
 		activityStyle.recycle();
 		
-	}
-	
-	@Override
-	protected void onDestroy() {
-		//Intent service = new Intent(this, UnreadService.class);
-		//stopService(service);
-		//unregisterReceiver(mConnectionReceiver);
-		super.onDestroy();
 	}
 	
 	@Override
@@ -173,57 +179,91 @@ public class MainActivity extends FragmentActivity implements BoardChangedListen
 	@Override
 	public void changeBoard(String boardname) {
 		mSlidingMenu.showContent();
-		getActionBar().setTitle(boardname);	
-		mCurrBoard = boardname;
-
-		FragmentManager fm = getSupportFragmentManager();
-		FragmentTransaction ft = fm.beginTransaction();
-		if (mCurrFragment != null)
-			ft.hide(mCurrFragment);
+		//getActionBar().setTitle(boardname);
+		if (boardname.equals(mCurrBoard))
+			return;
+		mCurrBoard = boardname;		
 		
 		switch (boardname) {
-		case "今日十大":
-			mCurrFragment = mTop10Fragment;
+		case "首页":
+			//mCurrentPagerAdapter = mHomePagerAdapter;
+			mHomeViewPager.setVisibility(View.VISIBLE);
+			mBoardViewPager.setVisibility(View.GONE);
+			initTab(mHomePagerAdapter.getTabTitle());
 			break;
 		case "站内信":
-			if (mMailFragment == null) {
-				mMailFragment = new MailFragment();
-				ft.add(R.id.main_layout, mMailFragment);
-			}
-			mCurrFragment = mMailFragment;
+			//mCurrentPagerAdapter = mPrivatePagerAdapter;
 			break;
 		default:
-		/*	if (mBoardFragment == null) {
-				mBoardFragment = new BoardFragment();
-				ft.add(R.id.main_layout, mBoardFragment);
-			}*/
-			mCurrFragment = mBoardFragment;
+			//mCurrentPagerAdapter = mBoardPagerAdapter;
+			mHomeViewPager.setVisibility(View.GONE);
+			mBoardViewPager.setVisibility(View.VISIBLE);
+			mBoardPagerAdapter.openBoard(mCurrBoard);
+			initTab(mBoardPagerAdapter.getTabTitle());
+			mBoardViewPager.setCurrentItem(mBoardPagerAdapter.getCount() - 1);
 			break;
 		}
-		ft.show(mCurrFragment);
-		ft.commit();
-		fm.executePendingTransactions();
-		
-		if (!mCurrBoard.equals("今日十大") && 
-				!mCurrBoard.equals("站内信") )
-			mBoardFragment.changeBoard(boardname);
+		//mHomeViewPager.setAdapter(mCurrentPagerAdapter);
+		//initTab(mCurrentPagerAdapter.getTabTitle());
+		//if (mCurrentPagerAdapter == mBoardPagerAdapter) {			
+		//	mHomeViewPager.setCurrentItem(mBoardPagerAdapter.getCount() - 1);
+		//}
 			
 		invalidateOptionsMenu();
 	}
+	
+	private void initTab(String[] tabTitle) {
+		ActionBar actionBar = getActionBar();
+		//tabTitle = mCurrentPagerAdapter.getTabTitle();
+		actionBar.removeAllTabs();
+		for (String title: tabTitle) {
+			ActionBar.Tab tab = actionBar.newTab();
+			tab.setText(title);
+			tab.setTabListener(this);
+			actionBar.addTab(tab);
+		}
+	}
 
 	public boolean sessionAlive() {		
-/*		for (URI uri: mCookieStore.getURIs()) {
-			List<HttpCookie> cookies = mCookieStore.get(uri);
-			for (HttpCookie cookie: cookies) {
-				//
-				//只会保存session cookie,所以只要cookie不为空且未过期就可以认为已登录
-				//
-				if (!cookie.hasExpired())
-					return true;
-			}
-		}*/	
-		return getPreferences(0).getBoolean(PREFERENCE_ISLOGGEDIN, false);
 
+		return getPreferences(0).getBoolean(PREFERENCE_ISLOGGEDIN, false);
+		
+	}
+
+	@Override
+	public void onPageScrollStateChanged(int arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageScrolled(int arg0, float arg1, int arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageSelected(int position) {
+		if (getActionBar().getNavigationMode() == ActionBar.NAVIGATION_MODE_TABS)
+			getActionBar().setSelectedNavigationItem(position);
+		
+	}
+
+	@Override
+	public void onTabReselected(Tab arg0, android.app.FragmentTransaction arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onTabSelected(Tab tab, android.app.FragmentTransaction ft) {
+		mHomeViewPager.setCurrentItem(tab.getPosition());
+		
+	}
+
+	@Override
+	public void onTabUnselected(Tab arg0, android.app.FragmentTransaction arg1) {
+		// TODO Auto-generated method stub
 		
 	}
 }

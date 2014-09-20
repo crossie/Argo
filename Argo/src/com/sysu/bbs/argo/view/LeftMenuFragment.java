@@ -61,7 +61,11 @@ import com.sysu.bbs.argo.api.dao.Section;
 import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
-
+/**
+ * 左滑菜单，用于导航，选择版面
+ * @author scim
+ *
+ */
 public class LeftMenuFragment extends DialogFragment implements
 		OnItemClickListener, OnRefreshListener2<ExpandableListView>,
 		OnChildClickListener {
@@ -93,13 +97,13 @@ public class LeftMenuFragment extends DialogFragment implements
 	//private TextView mMailHeader;
 
 	//private String mUserid = null;
-	private String mCurrBoard = BOARDNAME_TOP10;
+	private String mCurrBoard = BOARDNAME_HOME;
 
 	BoardChangedListener mBoardChangedListener;
 
 	//private RequestQueue mRequestQueue = null;
 
-	private static final String BOARDNAME_TOP10 = "今日十大";
+	private static final String BOARDNAME_HOME = "首页";
 	private BroadcastReceiver mSessionStatusReceiver;
 	
 	ProgressDialog mClearUnreadProgressDialog = null;
@@ -185,17 +189,17 @@ public class LeftMenuFragment extends DialogFragment implements
 
 		if (getDialog() == null) {
 
-			TextView top10Header = (TextView) inflater.inflate(
+			TextView homeHeader = (TextView) inflater.inflate(
 					android.R.layout.simple_list_item_1, null);
-			top10Header.setText("今日十大");
+			homeHeader.setText(BOARDNAME_HOME);
 			// top10Header.setCompoundDrawablesWithIntrinsicBounds(R.drawable.top10,
 			// 0, 0, 0);
-			top10Header.setOnClickListener(new OnClickListener() {
+			homeHeader.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View arg0) {
-					mCurrBoard = BOARDNAME_TOP10;
-					mBoardChangedListener.changeBoard(BOARDNAME_TOP10);
+					mCurrBoard = BOARDNAME_HOME;
+					mBoardChangedListener.changeBoard(BOARDNAME_HOME);
 
 				}
 
@@ -203,7 +207,7 @@ public class LeftMenuFragment extends DialogFragment implements
 
 			mHeader = new LinearLayout(getActivity());
 			mHeader.setOrientation(LinearLayout.VERTICAL);
-			mHeader.addView(top10Header);
+			mHeader.addView(homeHeader);
 			/*
 			 * mMailHeader = (TextView)
 			 * getLayoutInflater().inflate(android.R.layout.simple_list_item_1,
@@ -298,6 +302,8 @@ public class LeftMenuFragment extends DialogFragment implements
 		}
 	}
 
+
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 
@@ -496,7 +502,7 @@ public class LeftMenuFragment extends DialogFragment implements
 
 		MenuItem deleteFavorite = menu.findItem(R.id.delete_from_favorite);
 		MenuItem addToFavorite = menu.findItem(R.id.add_to_favorite);
-		if (mCurrBoard.equals(BOARDNAME_TOP10)) {
+		if (mCurrBoard.equals(BOARDNAME_HOME)) {
 			deleteFavorite.setVisible(false);
 			addToFavorite.setVisible(false);
 			return;

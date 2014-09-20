@@ -25,7 +25,16 @@ import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.PostHead;
 import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
-
+/**
+ * 阅读模式的基类. <br/>
+ * 主题模式, 帖子模式实现此类<br/>
+ * 后续计划添加文摘模式和精华区模式
+ * @author scim
+ *
+ * @param <T>
+ * @see NormalFragment
+ * @see TopicFragment
+ */
 abstract public class AbstractBoardFragment<T> extends Fragment 
 	implements OnRefreshListener2<ListView> {
 
@@ -37,10 +46,13 @@ abstract public class AbstractBoardFragment<T> extends Fragment
 
 	//protected RequestQueue mRequestQueue;
 	
-
+	public AbstractBoardFragment(String boardname) {
+		mCurrBoard = boardname;
+	}
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		//mRequestQueue = Volley.newRequestQueue(getActivity());
+		changeBoard(mCurrBoard, true);
 		super.onActivityCreated(savedInstanceState);
 	}
 	@Override
@@ -77,11 +89,11 @@ abstract public class AbstractBoardFragment<T> extends Fragment
 		super.onHiddenChanged(hidden);
 	}
 	
-	public void changeBoard(String boardname) {
-		if (boardname.equals(mCurrBoard))
+	public void changeBoard(String boardname, boolean init) {
+		if (boardname.equals(mCurrBoard) && !init)
 			return;
 		mCurrBoard = boardname;
-		setAdapterBoard(mCurrBoard);
+		//setAdapterBoard(mCurrBoard);
 		mDataList.clear();
 		mFirstIndex = -1;
 		mLastIndex = -1;
@@ -164,5 +176,5 @@ abstract public class AbstractBoardFragment<T> extends Fragment
 	}
 	
 	abstract protected void add2DataList(PostHead postHead, boolean head);
-	abstract protected void setAdapterBoard(String board);
+	//abstract protected void setAdapterBoard(String board);
 }

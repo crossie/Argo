@@ -15,16 +15,30 @@ import android.view.ViewGroup;
 
 import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.R;
-
+/**
+ * 代表一个打开的版面
+ * @author scim
+ *
+ */
 public class BoardFragment extends Fragment  {
 
+	@SuppressWarnings("rawtypes")
 	private AbstractBoardFragment mCurrFragment;
+	/**
+	 * 帖子模式
+	 */
 	private NormalFragment mNormalFragment;
+	/**
+	 * 主题模式
+	 */
 	private TopicFragment mTopicFragment;
 	private String mCurrBoard;
 	private static String FRAG_TAG_NORMAL = "FRAG_TAG_NORMAL";
 	private static String FRAG_TAG_TOPIC = "FRAG_TAG_TOPIC";
 
+	public BoardFragment(String boardname) {
+		mCurrBoard = boardname;
+	}
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -42,19 +56,21 @@ public class BoardFragment extends Fragment  {
 		if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("post_mode", true)) {
 			mNormalFragment = (NormalFragment) fm.findFragmentByTag(FRAG_TAG_NORMAL);
 			if (mNormalFragment == null) {
-				mNormalFragment = new NormalFragment();
+				mNormalFragment = new NormalFragment(mCurrBoard);
 				ft.add(R.id.frag_board, mNormalFragment, FRAG_TAG_NORMAL);
 			}			
 			mCurrFragment = mNormalFragment;
 		} else {
 			mTopicFragment = (TopicFragment) fm.findFragmentByTag(FRAG_TAG_TOPIC);
 			if (mTopicFragment == null) {
-				mTopicFragment = new TopicFragment();
+				mTopicFragment = new TopicFragment(mCurrBoard);
 				ft.add(R.id.frag_board, mTopicFragment, FRAG_TAG_TOPIC);
 			}
 			mCurrFragment = mTopicFragment;
 		}
 		ft.commit();
+		
+		//mCurrFragment.changeBoard(mCurrBoard);
 		
 		super.onActivityCreated(savedInstanceState);
 	}
@@ -62,7 +78,7 @@ public class BoardFragment extends Fragment  {
 	public void changeBoard(String boardname) {
 		if (!boardname.equals(mCurrBoard)) {
 			mCurrBoard = boardname;
-			mCurrFragment.changeBoard(mCurrBoard);
+			mCurrFragment.changeBoard(mCurrBoard, false);
 		}
 		
 	}
@@ -103,7 +119,7 @@ public class BoardFragment extends Fragment  {
 		case R.id.view_mode_normal:
 			mNormalFragment = (NormalFragment) fm.findFragmentByTag(FRAG_TAG_NORMAL);
 			if (mNormalFragment == null) {
-				mNormalFragment = new NormalFragment();
+				mNormalFragment = new NormalFragment(mCurrBoard);
 				ft.add(R.id.frag_board, mNormalFragment, FRAG_TAG_NORMAL);
 			}			
 			mCurrFragment = mNormalFragment;
@@ -112,12 +128,12 @@ public class BoardFragment extends Fragment  {
 			ft.commit();
 			fm.executePendingTransactions();
 			
-			mNormalFragment.changeBoard(mCurrBoard);
+			mNormalFragment.changeBoard(mCurrBoard, false);
 			break;
 		case R.id.view_mode_topic:
 			mTopicFragment = (TopicFragment) fm.findFragmentByTag(FRAG_TAG_TOPIC);
 			if (mTopicFragment == null) {
-				mTopicFragment = new TopicFragment();
+				mTopicFragment = new TopicFragment(mCurrBoard);
 				ft.add(R.id.frag_board, mTopicFragment, FRAG_TAG_TOPIC);
 			}
 			mCurrFragment = mTopicFragment;
@@ -127,7 +143,7 @@ public class BoardFragment extends Fragment  {
 			fm.executePendingTransactions();
 			// this should be called only when mTopicFragment is created for the first time
 			//but call multi time won't hurt....
-			mTopicFragment.changeBoard(mCurrBoard);
+			mTopicFragment.changeBoard(mCurrBoard, false);
 			break;
 		case R.id.add_new_topic:
 			Intent intent = new Intent(getActivity(), AddPostActivity.class);
@@ -143,6 +159,11 @@ public class BoardFragment extends Fragment  {
 			return false;
 		}		
 		return true;
+	}
+
+	public String getCurrentBoard() {
+		// TODO Auto-generated method stub
+		return mCurrBoard;
 	}
 
 }
