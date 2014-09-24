@@ -180,7 +180,7 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 						try {
 							PackageInfo pi = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
 							if (obj.getInt("versionCode") > pi.versionCode){
-								new AlertDialog.Builder(getActivity())   
+								new AlertDialog.Builder(getActivity(),AlertDialog.THEME_HOLO_DARK)   
 								.setTitle("发现新版本")  
 								.setMessage("是否更新到最新版本？")  
 								.setPositiveButton("是", new OnClickListener(){
