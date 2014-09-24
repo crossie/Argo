@@ -202,6 +202,9 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 								})  
 								.setNegativeButton("否", null)  
 								.show();
+							} else {
+								Toast.makeText(getActivity(), "暂时没更新",
+									     Toast.LENGTH_SHORT).show();
 							}
 						} catch (NameNotFoundException e1) {
 							loading.setVisibility(View.GONE);
