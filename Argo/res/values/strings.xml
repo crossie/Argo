@@ -33,7 +33,8 @@
         <item>登录</item>
         <item>草稿</item>
         <item>设置</item>
-        <item>关于</item>      
+        <item>关于</item>
+        <item>检查更新</item>
     </string-array>
     
     <string name="title_activity_settings">设置</string>
