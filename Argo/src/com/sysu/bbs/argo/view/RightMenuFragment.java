@@ -143,7 +143,7 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 		case 2:
 			startActivity(new Intent(getActivity(), SettingsActivity.class));
 			break;
-		case 3:
+		case 4:
 			AlertDialog.Builder builder = new AlertDialog.Builder(
 					getActivity(), AlertDialog.THEME_HOLO_DARK);
 
@@ -168,7 +168,7 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 			message.setMovementMethod(LinkMovementMethod.getInstance());
 			;
 			break;
-		case 4:
+		case 3:
 			final ProgressBar loading = (ProgressBar)getActivity().findViewById(R.id.checkUpdateLoading);
 			loading.setVisibility(View.VISIBLE);
 			String requestUrl = "https://raw.githubusercontent.com/bao050400287/argorel/master/check_update.html";
