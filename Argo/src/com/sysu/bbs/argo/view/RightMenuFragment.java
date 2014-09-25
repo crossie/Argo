@@ -3,16 +3,22 @@ package com.sysu.bbs.argo.view;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface.OnClickListener;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -25,8 +31,14 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Request.Method;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.sysu.bbs.argo.DraftActivity;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.SettingsActivity;
@@ -131,7 +143,7 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 		case 2:
 			startActivity(new Intent(getActivity(), SettingsActivity.class));
 			break;
-		case 3:
+		case 4:
 			AlertDialog.Builder builder = new AlertDialog.Builder(
 					getActivity(), AlertDialog.THEME_HOLO_DARK);
 
@@ -155,6 +167,64 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 					.setTitle("关于").show().findViewById(android.R.id.message);
 			message.setMovementMethod(LinkMovementMethod.getInstance());
 			;
+			break;
+		case 3:
+			final ProgressBar loading = (ProgressBar)getActivity().findViewById(R.id.checkUpdateLoading);
+			loading.setVisibility(View.VISIBLE);
+			String requestUrl = "https://raw.githubusercontent.com/bao050400287/argorel/master/check_update.html";
+			SessionManager.getRequestQueue().add(new JsonObjectRequest(requestUrl, null,
+				new Response.Listener<JSONObject>() {
+					@Override
+					public void onResponse(final JSONObject obj) {
+						loading.setVisibility(View.GONE);
+						try {
+							PackageInfo pi = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+							if (obj.getInt("versionCode") > pi.versionCode){
+								new AlertDialog.Builder(getActivity(),AlertDialog.THEME_HOLO_DARK)   
+								.setTitle("发现新版本")  
+								.setMessage("是否更新到最新版本？")  
+								.setPositiveButton("是", new OnClickListener(){
+									@Override
+									public void onClick(DialogInterface dialog,
+											int which) {
+										// TODO Auto-generated method stub
+										Intent intent = new Intent();        
+										intent.setAction("android.intent.action.VIEW");    
+										try {
+											Uri content_url = Uri.parse(obj.getString("url"));
+											intent.setData(content_url);  
+											startActivity(intent);
+										} catch (JSONException e) {
+											Toast.makeText(getActivity(), "更新链接错误",
+												     Toast.LENGTH_SHORT).show();
+										}   
+									}
+								})  
+								.setNegativeButton("否", null)  
+								.show();
+							} else {
+								Toast.makeText(getActivity(), "暂时没更新",
+									     Toast.LENGTH_SHORT).show();
+							}
+						} catch (NameNotFoundException e1) {
+							loading.setVisibility(View.GONE);
+							Toast.makeText(getActivity(), "系统版本错误",
+								     Toast.LENGTH_SHORT).show();
+						} catch (JSONException e) {
+							loading.setVisibility(View.GONE);
+							Toast.makeText(getActivity(), "获取更新数据错误",
+								     Toast.LENGTH_SHORT).show();
+						}
+					}
+				}, new Response.ErrorListener() {
+					@Override
+					public void onErrorResponse(VolleyError error) {
+						loading.setVisibility(View.GONE);
+						Toast.makeText(getActivity(), "网络错误,请稍后再试",
+							     Toast.LENGTH_SHORT).show();
+					}
+				}
+			));
 			break;
 		case 1:
 			Intent intent = new Intent(getActivity(), DraftActivity.class);
