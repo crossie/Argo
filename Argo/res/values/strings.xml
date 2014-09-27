@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Argo</string>
+    <string name="app_name">逸仙时空</string>
     <string name="hint_user_name">请输入用户名</string>
     <string name="hint_password">请输入密码</string>
     <string name="hint_title">标题</string>
@@ -64,4 +64,8 @@
   	<string name="top10_loading">努力加载中…</string>
 	<string name="top10_load_fail">加载失败，请下拉重试…</string>
 	<string name="top10_unknown_error">未知错误，请下拉重试…</string>
+	
+	<string name="menu_tab_close">关闭</string>
+	<string name="menu_tab_close_others">关闭其他</string>
+	<string name="menu_tab_close_all">关闭全部</string>
 </resources>

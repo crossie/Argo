@@ -45,15 +45,19 @@ public class Top10Fragment extends Fragment
 	implements OnRefreshListener<ListView>, OnItemClickListener{
 
 	private Top10Adapter mTop10Adapter;
-	private ArrayList<Top10> mTop10List = new ArrayList<Top10>();
+	private ArrayList<Top10> mTop10List = null;
 	//private RequestQueue requestQueue = null;
 	private TextView mEmptyView = null;
 	
 	private PullToRefreshListView mPullRefreshListView;
-	
+	/**
+	 * colors used to indicate the hotness of top10
+	 */
 	private int[] mRankingBackground = new int[] {R.color.ranking_1,R.color.ranking_2,R.color.ranking_3,
 			R.color.ranking_4,R.color.ranking_5,R.color.ranking_6,R.color.ranking_7,
 			R.color.ranking_8,R.color.ranking_9,R.color.ranking_10,};
+	
+	private static final String OUTSTATE_TOP10_KEY = "OUTSTATE_TOP10_KEY";
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,25 +65,43 @@ public class Top10Fragment extends Fragment
 		
 		View  v =  inflater.inflate(R.layout.frag_top10, container, false);
 		mPullRefreshListView = (PullToRefreshListView) v.findViewById(R.id.frag_top10_list);
-		mTop10Adapter = new Top10Adapter(getActivity(), R.layout.item_top10,
-				mTop10List);
+
 		mPullRefreshListView.setOnRefreshListener(this);
 		mPullRefreshListView.setOnItemClickListener(this);
-		mPullRefreshListView.setAdapter(mTop10Adapter);
+		
 		
 		mEmptyView = (TextView) v.findViewById(R.id.frag_top10_empty);
-		mEmptyView.setText(R.string.top10_loading);
-		mEmptyView.setVisibility(View.VISIBLE);
+
 		//mPullRefreshListView.getRefreshableView().setEmptyView(mEmptyView);
 		return v;
 	}
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		
-		//requestQueue = Volley.newRequestQueue(getActivity());
-		refresh();
-		mPullRefreshListView.setRefreshing();
+		if (savedInstanceState == null) {
+			mTop10List = new ArrayList<Top10>();
+		} else {
+			mTop10List = savedInstanceState.getParcelableArrayList(OUTSTATE_TOP10_KEY);
+		}
+		
+		mTop10Adapter = new Top10Adapter(getActivity(), R.layout.item_top10,
+				mTop10List);
+		mPullRefreshListView.setAdapter(mTop10Adapter);
+		
+		if (savedInstanceState == null) {
+			mEmptyView.setText(R.string.top10_loading);
+			mEmptyView.setVisibility(View.VISIBLE);
+			refresh();
+			mPullRefreshListView.setRefreshing();
+		}
+		
 		super.onActivityCreated(savedInstanceState);
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		outState.putParcelableArrayList(OUTSTATE_TOP10_KEY, mTop10List);
+		super.onSaveInstanceState(outState);
 	}
 
 	private void refresh() {

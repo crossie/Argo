@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.text.format.DateUtils;
 import android.widget.ArrayAdapter;
@@ -32,28 +33,56 @@ import com.sysu.bbs.argo.util.SimpleErrorListener;
  * @author scim
  *
  * @param <T>
+ * @see BoardFragment
  * @see NormalFragment
  * @see TopicFragment
  */
-abstract public class AbstractBoardFragment<T> extends Fragment 
+abstract public class AbstractBoardFragment<T extends Parcelable> extends Fragment 
 	implements OnRefreshListener2<ListView> {
 
 	protected int mFirstIndex = -1, mLastIndex = -1;
 	protected String mCurrBoard, mType;
-	protected ArrayList<T> mDataList = new ArrayList<T>();
+	protected ArrayList<T> mDataList = null;
 	protected PullToRefreshListView mListView;
 	protected ArrayAdapter<T> mAdapter;
+	
+	private String OUTSTATE_FIRST_INDEX_KEY = "OUTSTATE_FIRST_INDEX_KEY";
+	private String OUTSTATE_LAST_INDEX_KEY = "OUTSTATE_LAST_INEX_KEY";
+	private String OUTSTATE_CURR_BOARD_KEY = "OUTSTATE_CURR_BOARD_KEY";
+	private String OUTSTATE_TYPE_KEY = "OUTSTATE_TYPE_KEY";
+	private String OUTSTATE_DATA_LIST_KEY = "OUTSTATE_DATA_LIST_KEY";
 
 	//protected RequestQueue mRequestQueue;
+	public AbstractBoardFragment() {
+		
+	}
 	
 	public AbstractBoardFragment(String boardname) {
 		mCurrBoard = boardname;
 	}
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-		//mRequestQueue = Volley.newRequestQueue(getActivity());
-		changeBoard(mCurrBoard, true);
+		if (savedInstanceState == null) {
+			mDataList = new ArrayList<T>();
+			changeBoard(mCurrBoard, true);
+		}
+		else {
+			mFirstIndex = savedInstanceState.getInt(OUTSTATE_FIRST_INDEX_KEY);
+			mLastIndex = savedInstanceState.getInt(OUTSTATE_LAST_INDEX_KEY);
+			mCurrBoard = savedInstanceState.getString(OUTSTATE_CURR_BOARD_KEY);
+			mType = savedInstanceState.getString(OUTSTATE_TYPE_KEY);
+			mDataList = savedInstanceState.getParcelableArrayList(OUTSTATE_DATA_LIST_KEY);
+		}
 		super.onActivityCreated(savedInstanceState);
+	}
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		outState.putInt(OUTSTATE_FIRST_INDEX_KEY, mFirstIndex);
+		outState.putInt(OUTSTATE_LAST_INDEX_KEY, mLastIndex);
+		outState.putString(OUTSTATE_CURR_BOARD_KEY, mCurrBoard);
+		outState.putString(OUTSTATE_TYPE_KEY, mType);
+		outState.putParcelableArrayList(OUTSTATE_DATA_LIST_KEY, mDataList);
+		super.onSaveInstanceState(outState);
 	}
 	@Override
 	public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {

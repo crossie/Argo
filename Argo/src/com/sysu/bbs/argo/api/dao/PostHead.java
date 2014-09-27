@@ -3,7 +3,10 @@ package com.sysu.bbs.argo.api.dao;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class PostHead {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class PostHead implements Parcelable {
 	String update;
 	String id;//这个帖子所属主题的第一个帖子的filename中间的那个时间戳（如M.123456789.A的时间戳是123456789
 	String title;
@@ -30,6 +33,18 @@ public class PostHead {
 	public PostHead(String filename) {
 		this.filename = filename;
 		unread = "0";
+	}
+	public PostHead(Parcel in) {
+		update = in.readString();
+		id = in.readString();
+		title = in.readString();
+		index = in.readInt();
+		flag = in.readString();
+		unread = in.readString();
+		owner = in.readString();
+		filename = in.readString();
+		mark = in.readString();
+		boardname = in.readString();
 	}
 	public String getUpdate() {
 		return update;
@@ -91,4 +106,32 @@ public class PostHead {
 	public void setBoardname(String boardname) {
 		this.boardname = boardname;
 	}
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public void writeToParcel(Parcel dest, int f) {
+		dest.writeString(update);
+		dest.writeString(id);
+		dest.writeString(title);
+		dest.writeInt(index);
+		dest.writeString(flag);
+		dest.writeString(unread);
+		dest.writeString(owner);
+		dest.writeString(filename);
+		dest.writeString(mark);
+		dest.writeString(boardname);
+		
+	}
+	@SuppressWarnings("rawtypes")
+	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+		public PostHead createFromParcel(Parcel in ) {
+			return new PostHead(in);
+		}
+		public PostHead[] newArray(int size) {
+			return new PostHead[size];
+		}
+	};
 }

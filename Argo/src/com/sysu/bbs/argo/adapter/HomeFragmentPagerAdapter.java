@@ -14,7 +14,6 @@ import com.sysu.bbs.argo.view.WhatsNewFragment;
  */
 public class HomeFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 
-	private String[] mTabTitle = {"今日十大", "新鲜发言", "推荐文章"};
 	private Top10Fragment mTop10Fragment = null;
 	private WhatsNewFragment mNewFragment = null;
 	private RecommendFragment mRecommendFragment = null;
@@ -44,7 +43,7 @@ public class HomeFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 
 	@Override
 	public String[] getTabTitle() {
-		return mTabTitle;
+		return new String[] {"今日十大", "新鲜发言", "推荐文章"};
 	}
 
 

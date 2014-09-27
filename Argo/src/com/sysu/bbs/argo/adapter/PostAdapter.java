@@ -40,10 +40,7 @@ import com.sysu.bbs.argo.util.SimpleErrorListener;
 public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListener {
 
 	private static HashMap<String, Post> mPostMap;
-	//how to initialize board name ?
 	private String mBoardName;
-	//private RequestQueue mRequestQueue;
-
 
 	public PostAdapter(Context con, int resource, List<PostHead> objects, String boardname) {
 		super(con, resource, objects);

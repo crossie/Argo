@@ -1,7 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/frag_board"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:id="@+id/frag_board"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginBottom="30dp"
+        android:background="#CC888888"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/floating_btn_new_post"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:minHeight="40dp"
+            android:minWidth="40dp"
+            android:text="+"
+            android:textColor="#FFFFFF" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:background="?android:attr/dividerHorizontal" />
+
+        <Button
+            android:id="@+id/floating_btn_switch_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:minHeight="40dp"
+            android:minWidth="40dp"
+            android:text="≡"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_marginBottom="30dp"
+        android:background="#CC888888"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/floating_btn_close_board"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:minHeight="40dp"
+            android:minWidth="40dp"
+            android:onClick="closeBoard"
+            android:text="X"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
 
 </FrameLayout>

@@ -33,6 +33,9 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 
 	private PostHeadAdapter mPostHeadAdapter;
 	
+	public TopicFragment() {
+		
+	}
 	public TopicFragment(String boardname) {
 		super(boardname);
 		// TODO Auto-generated constructor stub
@@ -56,14 +59,13 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-
+		super.onActivityCreated(savedInstanceState);
 		mPostHeadAdapter = new PostHeadAdapter(getActivity(), android.R.layout.simple_list_item_1, mDataList);
 		mAdapter = mPostHeadAdapter;
 		mListView.setAdapter(mAdapter);
 		//mListView.setOnLongClickListener(this);
 		registerForContextMenu(mListView.getRefreshableView());
 		
-		super.onActivityCreated(savedInstanceState);
 	}
 	
 	@Override

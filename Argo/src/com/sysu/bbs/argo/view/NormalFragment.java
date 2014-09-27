@@ -46,6 +46,9 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 
 	private PostAdapter mPostAdapter;
 
+	public NormalFragment() {
+		
+	}
 	public NormalFragment(String boardname) {
 		super(boardname);
 		// TODO Auto-generated constructor stub
@@ -67,13 +70,16 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
+		//super.onActivityCreated(...) has to be the first statement
+		//because instance state is restored there
+		super.onActivityCreated(savedInstanceState);
 		mPostAdapter = new PostAdapter(getActivity(),
 				android.R.layout.simple_list_item_1, mDataList, mCurrBoard);
 		mAdapter = mPostAdapter;
 		mListView.setAdapter(mAdapter);
 		mListView.setOnItemClickListener(this);
 		registerForContextMenu(mListView.getRefreshableView());
-		super.onActivityCreated(savedInstanceState);
+		
 	}
 
 	@Override
@@ -101,7 +107,7 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		menu.add(R.layout.frag_normal, R.string.menu_title_topic, 0, R.string.menu_title_topic);
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
 		Post post = mPostAdapter.getPost(mPostAdapter.getItem(info.position - 1).getFilename());
-		if (post.getPerm_del().equals("1")) {
+		if (post != null && "1".equals(post.getPerm_del())) {
 			menu.add(R.layout.frag_normal, R.string.menu_title_delete, 0, R.string.menu_title_delete);
 		} 
 	}

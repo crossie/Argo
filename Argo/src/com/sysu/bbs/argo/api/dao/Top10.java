@@ -1,11 +1,12 @@
 package com.sysu.bbs.argo.api.dao;
 
-import java.sql.Date;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Top10 {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Top10  implements Parcelable {
 	String filename;
 	String author;
 	int num;
@@ -20,6 +21,15 @@ public class Top10 {
 		time = json.getString("time");
 		title = json.getString("title");
 		board = json.getString("board");
+	}
+
+	public Top10(Parcel in) {
+		filename = in.readString();
+		author = in.readString();
+		num = in.readInt();
+		time = in.readString();
+		title = in.readString();
+		board = in.readString();
 	}
 
 	public String getFilename() {
@@ -69,6 +79,31 @@ public class Top10 {
 	public void setBoard(String board) {
 		this.board = board;
 	}
+
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int f) {
+		dest.writeString(filename);
+		dest.writeString(author);
+		dest.writeInt(num);
+		dest.writeString(time);
+		dest.writeString(title);
+		dest.writeString(board);
+		
+	}
 	
-	
+	@SuppressWarnings("rawtypes")
+	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+		public Top10 createFromParcel(Parcel in ) {
+			return new Top10(in);
+		}
+		public Top10[] newArray(int size) {
+			return new Top10[size];
+		}
+	};
 }

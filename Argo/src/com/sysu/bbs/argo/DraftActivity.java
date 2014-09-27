@@ -19,6 +19,9 @@ public class DraftActivity extends SwipeBackActivity {
 	private ArrayList<File> mDraftList;
 	private FileObserver mDraftObserver;
 	private String mDraftPath;
+	/**
+	 * used to post runnable to main thread
+	 */
 	private Handler mHandler;
 
 	// private HashMap<File, Post> mDraftMap;
@@ -71,6 +74,10 @@ public class DraftActivity extends SwipeBackActivity {
 			// TODO Auto-generated constructor stub
 		}
 
+		/**
+		 * react to draft file changes <br/>
+		 * because this does not run on main thread, thus need to use handler to post runnables
+		 */
 		@Override
 		public void onEvent(int event, final String path) {
 			switch (event) {
