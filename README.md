@@ -3,7 +3,7 @@ Argo
 
 Argo in Android for sysu bbs
 
-1. 目录结构
+<h1>1. 目录结构</h1>
 <ul>
 <li>Argo                      : 程序主代码</li>
 <li>PullRefreshSample         : 下拉刷新的库的例子，用于学习。主程序中没有用</li>
@@ -30,5 +30,4 @@ Argo in Android for sysu bbs
 <li>swipebackactivity: https://github.com/Issacw0ng/SwipeBackLayout </li>
 <li>volley: http://developer.android.com/training/volley/index.html </li>
 </ul>
-2. 主程序结构
-3. 
+<h1>2. 主程序结构</h1>
