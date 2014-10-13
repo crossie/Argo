@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
         android:layout_marginBottom="30dp"
+        android:layout_marginRight="@dimen/item_margin"
         android:background="#CC888888"
         android:orientation="vertical" >
 
@@ -51,6 +52,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|left"
         android:layout_marginBottom="30dp"
+        android:layout_marginLeft="@dimen/item_margin"
         android:background="#CC888888"
         android:orientation="vertical" >
 

@@ -20,7 +20,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -165,15 +164,18 @@ public class MainActivity extends FragmentActivity
 		mHomeViewPager = (ViewPager) findViewById(R.id.home_view_pager);
 		mHomeViewPager.setOnPageChangeListener(this);
 		mHomeViewPager.setAdapter(mHomePagerAdapter);
+		mHomeViewPager.setOffscreenPageLimit(4);
 		//mCurrViewPager = mHomeViewPager;
 				
 		mBoardViewPager = (ViewPager) findViewById(R.id.board_view_pager);
 		mBoardViewPager.setOnPageChangeListener(this);
 		mBoardViewPager.setAdapter(mBoardPagerAdapter);
+		mBoardViewPager.setOffscreenPageLimit(10);
 		
 		mPrivateViewPager = (ViewPager) findViewById(R.id.private_view_pager);
 		mPrivateViewPager.setOnPageChangeListener(this);
 		mPrivateViewPager.setAdapter(mPrivatePagerAdapter);
+		mPrivateViewPager.setOffscreenPageLimit(4);
 		
 		if (savedInstanceState == null) {
 			mTabTitles = new HashMap<String, ArrayList<String>>();
@@ -182,11 +184,15 @@ public class MainActivity extends FragmentActivity
 			//初始化首页的tab
 			initTabs(home, VIEW_PAGER_TYPE_HOME);
 			//TODO 初始化站内信，短信信息的tab
-			//ArrayList<String> priv = new ArrayList<String>(Arrays.asList(mPrivatePagerAdapter.getTabTitle()));
-			//initTabs(new ArrayList<String>(priv), VIEW_PAGER_TYPE_PRIVATE);
+			ArrayList<String> priv = new ArrayList<String>(Arrays.asList(mPrivatePagerAdapter.getTabTitle()));
+			mTabTitles.put(VIEW_PAGER_TYPE_PRIVATE, priv);
+			initTabs(priv, VIEW_PAGER_TYPE_PRIVATE);
+			
 			mTabTitles.put(VIEW_PAGER_TYPE_BOARD, new ArrayList<String>());
-			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-			changeTabs(VIEW_PAGER_TYPE_HOME);
+			//TODO not yet implement
+			//getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+			//changeTabs(VIEW_PAGER_TYPE_HOME);
 		}
 		//实现退出时的动画,不明白为什么要这样写才行
 		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
@@ -236,19 +242,23 @@ public class MainActivity extends FragmentActivity
 		//otherwise can not get titles of mBoardPagerAdapter
 		super.onRestoreInstanceState(savedInstanceState);
 		mTabTitles = (HashMap<String, ArrayList<String>>) savedInstanceState.getSerializable(OUTSTATE_TAB_TITLE_KEY);
+		initTabs(mTabTitles.get(VIEW_PAGER_TYPE_HOME), VIEW_PAGER_TYPE_HOME);
+		initTabs(mTabTitles.get(VIEW_PAGER_TYPE_BOARD), null);
+		initTabs(mTabTitles.get(VIEW_PAGER_TYPE_PRIVATE), VIEW_PAGER_TYPE_PRIVATE);
+		
 		int lastFrag = savedInstanceState.getInt(OUTSTATE_CURR_FRAG_KEY);
-		if ( lastFrag == 0) {
-			initTabs(mTabTitles.get(VIEW_PAGER_TYPE_HOME), VIEW_PAGER_TYPE_HOME);
-			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-			changeTabs(VIEW_PAGER_TYPE_HOME);
+		if ( lastFrag == 0) {			
+			//TODO not yet implement
+			//getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+			//changeTabs(VIEW_PAGER_TYPE_HOME);
+			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 			getActionBar().setSelectedNavigationItem(0);
 			mHomeViewPager.setCurrentItem(0);
 			mHomeViewPager.setVisibility(View.VISIBLE);			
 			mBoardViewPager.setVisibility(View.GONE);
 			mPrivateViewPager.setVisibility(View.GONE);
 		}
-		else if (lastFrag == 1) {
-			initTabs(mTabTitles.get(VIEW_PAGER_TYPE_BOARD), null);
+		else if (lastFrag == 1) {			
 			changeTabs("");
 			if (mBoardPagerAdapter.getCount() > 1) {
 				getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -259,8 +269,7 @@ public class MainActivity extends FragmentActivity
 			mBoardViewPager.setVisibility(View.VISIBLE);
 			mPrivateViewPager.setVisibility(View.GONE);
 		}
-		else if (lastFrag == 2) {
-			initTabs(mTabTitles.get(VIEW_PAGER_TYPE_PRIVATE), VIEW_PAGER_TYPE_PRIVATE);
+		else if (lastFrag == 2) {			
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 			changeTabs(VIEW_PAGER_TYPE_PRIVATE);
 			getActionBar().setSelectedNavigationItem(0);
@@ -279,6 +288,8 @@ public class MainActivity extends FragmentActivity
 		if (mBackCounter > 1)
 			super.onBackPressed();
 		else {
+			if (mSlidingMenu.isMenuShowing())
+				mSlidingMenu.showMenu();
 			Toast.makeText(this, "再按一次退出", Toast.LENGTH_SHORT).show();
 			new Handler().postDelayed(new Runnable() {
 				
@@ -303,8 +314,9 @@ public class MainActivity extends FragmentActivity
 			//mCurrentPagerAdapter = mHomePagerAdapter;
 			mHomeViewPager.setVisibility(View.VISIBLE);
 			mBoardViewPager.setVisibility(View.GONE);
-			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-			changeTabs(VIEW_PAGER_TYPE_HOME);
+			//TODO NOT YET IMPLEMENT
+			//getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+			//changeTabs(VIEW_PAGER_TYPE_HOME);
 			break;
 		case VIEW_PAGER_TYPE_PRIVATE:
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -335,7 +347,7 @@ public class MainActivity extends FragmentActivity
 		//ActionBar actionbar = getActionBar();
 		
 		for (String title: tabTitles) {
-			Log.e("init tabs", title);
+			//Log.e("init tabs", title);
 			Tab tab = getActionBar().newTab();
 			tab.setTabListener(this);
 			tab.setText(title);
@@ -451,17 +463,24 @@ public class MainActivity extends FragmentActivity
 	 * 关闭按钮. 在xml里指定的onClick的方法都是在activity里的
 	 */
 	public void closeBoard(View v) {
-		if (v.getId() == R.id.floating_btn_close_board &&
-				mBoardPagerAdapter.getCount() > 1) {
+		if (v.getId() == R.id.floating_btn_close_board /*&&
+				mBoardPagerAdapter.getCount() > 1*/) {
 			ActionBar actionBar = getActionBar();
 			int curr = mBoardViewPager.getCurrentItem();
 			String boardname = mTabTitles.get(VIEW_PAGER_TYPE_BOARD).get(curr);
 			mBoardPagerAdapter.closeBoard(curr);
 			mTabTitles.get(VIEW_PAGER_TYPE_BOARD).remove(curr);
 			actionBar.removeTabAt(curr);
-			Toast.makeText(this, curr + "____" + mBoardPagerAdapter.getCount(), Toast.LENGTH_SHORT).show();
 			if (mBoardPagerAdapter.getCount() == 1)
 				actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+			else if (mBoardPagerAdapter.getCount() == 0) {
+				//TODO NOT YET IMPLEMENT
+				//actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+				//changeTabs(VIEW_PAGER_TYPE_HOME);
+				actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+				mBoardViewPager.setVisibility(View.GONE);
+				mHomeViewPager.setVisibility(View.VISIBLE);
+			}
 			Iterator<Tab> iter = mTabList.iterator();
 			while (iter.hasNext()) {
 				Tab tab = iter.next();
@@ -473,4 +492,5 @@ public class MainActivity extends FragmentActivity
 			
 		}
 	}
+	
 }

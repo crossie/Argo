@@ -72,6 +72,8 @@ abstract public class AbstractBoardFragment<T extends Parcelable> extends Fragme
 			mCurrBoard = savedInstanceState.getString(OUTSTATE_CURR_BOARD_KEY);
 			mType = savedInstanceState.getString(OUTSTATE_TYPE_KEY);
 			mDataList = savedInstanceState.getParcelableArrayList(OUTSTATE_DATA_LIST_KEY);
+			if (mDataList.size() == 0)
+				changeBoard(mCurrBoard, true);
 		}
 		super.onActivityCreated(savedInstanceState);
 	}
@@ -84,6 +86,8 @@ abstract public class AbstractBoardFragment<T extends Parcelable> extends Fragme
 		outState.putParcelableArrayList(OUTSTATE_DATA_LIST_KEY, mDataList);
 		super.onSaveInstanceState(outState);
 	}
+	
+	
 	@Override
 	public void onPullDownToRefresh(PullToRefreshBase<ListView> refreshView) {
 		String label = DateUtils.formatDateTime(getActivity(), System.currentTimeMillis(),

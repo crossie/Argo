@@ -101,7 +101,7 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		if (item.getGroupId() != R.layout.frag_topic)
+		if (item.getGroupId() != R.layout.frag_topic || !!getParentFragment().getUserVisibleHint())
 			return false;
 		
 		if (!getUserVisibleHint())

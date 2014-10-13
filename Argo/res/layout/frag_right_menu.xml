@@ -22,20 +22,20 @@
             android:textSize="20sp" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/linearLayout1"
+    <View
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:layout_below="@id/userid_and_name"
-        android:background="@drawable/divider"
-        android:orientation="horizontal" />
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:background="?android:attr/dividerHorizontal" />
 
     <ListView
         android:id="@+id/right_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="30dp"
-        android:layout_alignParentBottom="true" >
+        android:layout_alignParentBottom="true"
+        android:layout_margin="30dp" >
     </ListView>
 
 </RelativeLayout>

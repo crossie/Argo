@@ -1,11 +1,12 @@
 package com.sysu.bbs.argo.adapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 
 import com.sysu.bbs.argo.view.BoardFragment;
 
@@ -16,6 +17,8 @@ public class BoardFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 	 */
 	private List<BoardFragment> mOpenBoardList;
 	private FragmentManager mFragmentManager;
+	private int mFragMaxPos = -1;
+	public static final String FRAG_ARG_KEY = "FRAG_ARG_KEY";
 	public BoardFragmentPagerAdapter(FragmentManager fm) {
 		super(fm);
 		mFragmentManager = fm;
@@ -23,12 +26,17 @@ public class BoardFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 		List<Fragment> savedFrag = fm.getFragments();
 		if (savedFrag != null) {
 			for (Fragment frag: savedFrag) {
-				if (frag instanceof BoardFragment)
+				if (frag instanceof BoardFragment) {
 					mOpenBoardList.add((BoardFragment) frag);
+					Bundle bundle = frag.getArguments();
+					int pos = bundle.getInt(FRAG_ARG_KEY);
+					if (pos > mFragMaxPos)
+						mFragMaxPos = pos;
+				}
+				
 			}
 		}
-		Log.e("BoardFragmentPagerAdapter", "BoardFragmentPagerAdapter " + mOpenBoardList.size());
-
+		Collections.sort(mOpenBoardList);
 	}
 
 	@Override
@@ -45,8 +53,7 @@ public class BoardFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 	public int getItemPosition(Object object) {
 		if (mOpenBoardList.contains(object))
 			return mOpenBoardList.indexOf(object);
-		else
-			return POSITION_NONE;
+		return POSITION_NONE;
 	}
 
 	/**
@@ -60,6 +67,9 @@ public class BoardFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 				return;
 		}
 		BoardFragment boardfrag = new BoardFragment(board);
+		Bundle bundle = new Bundle();
+		bundle.putInt(FRAG_ARG_KEY, ++mFragMaxPos);
+		boardfrag.setArguments(bundle);
 		mOpenBoardList.add(boardfrag);
 		notifyDataSetChanged();
 	}
@@ -91,6 +101,11 @@ public class BoardFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 		mOpenBoardList.remove(index);
 		notifyDataSetChanged();
 		
+	}
+	
+	@Override
+	public long getItemId(int position) {
+		return mOpenBoardList.get(position).getCurrentBoard().hashCode();
 	}
 
 }

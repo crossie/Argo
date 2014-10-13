@@ -4,7 +4,7 @@
     android:layout_height="match_parent" >
 
     <com.handmark.pulltorefresh.library.PullToRefreshListView
-        android:id="@+id/frag_top10_empty"
+        android:id="@+id/frag_home_list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_margin="5dp"
@@ -16,7 +16,7 @@
         android:smoothScrollbar="true" />
 
     <TextView
-        android:id="@+id/frag_top10_empty"
+        android:id="@+id/frag_home_empty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"

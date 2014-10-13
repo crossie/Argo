@@ -3,9 +3,12 @@ package com.sysu.bbs.argo.api.dao;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.sysu.bbs.argo.util.Splitter;
 
-public class Post {
+public class Post implements Parcelable {
 	String userid;
 	String username;
 	String title;
@@ -37,6 +40,23 @@ public class Post {
 	
 	public Post() {
 		// TODO Auto-generated constructor stub
+	}
+
+	public Post(Parcel in) {
+		userid = in.readString();
+		username = in.readString();
+		title = in.readString();
+		board = in.readString();
+		post_time = in.readString();
+		rawcontent = in.readString();
+		rawsignature = in.readString();
+		filename = in.readString();
+		bbsname = in.readString();
+		filename = in.readString();
+		perm_del = in.readString();
+		type = in.readString();
+		parsedContent = in.readString();
+		parsedQuote = in.readString();
 	}
 
 	private void parse(String rawcontent2) {
@@ -147,6 +167,38 @@ public class Post {
 	public void setType(String type) {
 		this.type = type;
 	}
-	
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public void writeToParcel(Parcel dest, int f) {
+
+		dest.writeString(userid);
+		dest.writeString(username);
+		dest.writeString(title);
+		dest.writeString(board);
+		dest.writeString(post_time);
+		dest.writeString(rawcontent);
+		dest.writeString(rawsignature);
+		dest.writeString(filename);
+		dest.writeString(bbsname);
+		dest.writeString(filename);
+		dest.writeString(perm_del);
+		dest.writeString(type);
+		dest.writeString(parsedContent);
+		dest.writeString(parsedQuote);
+		
+	}
+	@SuppressWarnings("rawtypes")
+	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+		public Post createFromParcel(Parcel in ) {
+			return new Post(in);
+		}
+		public Post[] newArray(int size) {
+			return new Post[size];
+		}
+	};
 	
 }

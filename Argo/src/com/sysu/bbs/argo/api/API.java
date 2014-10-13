@@ -35,6 +35,7 @@ public final class API {
 		public static final String AJAX_ANC = entry + "/ajax/anc/";
 		
 		public static final String AJAX_COMM_TOPTEN = entry + "/ajax/comm/topten/";
+		public static final String AJAX_V2_TOP_TOPIC = entry + "/ajax/v2/top/topic";
 				
 	}
 	public static final class POST {

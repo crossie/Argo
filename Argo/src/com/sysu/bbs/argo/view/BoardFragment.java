@@ -14,12 +14,13 @@ import android.view.ViewGroup;
 
 import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.R;
+import com.sysu.bbs.argo.adapter.BoardFragmentPagerAdapter;
 /**
  * 代表一个打开的版面，注意和AbstractBoardFragment的区别
  * @author scim
  * @see AbstractBoardFragment
  */
-public class BoardFragment extends Fragment implements OnClickListener  {
+public class BoardFragment extends Fragment implements OnClickListener, Comparable<BoardFragment>  {
 
 	@SuppressWarnings("rawtypes")
 	private AbstractBoardFragment mCurrFragment;
@@ -37,8 +38,8 @@ public class BoardFragment extends Fragment implements OnClickListener  {
 	private String mCurrBoard;
 	private static String FRAG_TAG_NORMAL = "FRAG_TAG_NORMAL";
 	private static String FRAG_TAG_TOPIC = "FRAG_TAG_TOPIC";
-	private static String OUTSTAT_CURR_BOARD = "OUTSTAT_CURR_BOARD";
-	
+	private static String OUTSTAT_CURR_BOARD = "OUTSTAT_CURR_BOARD_BoardFragment";
+	private static String OUTSTAT_CURR_MODE = "OUTSTAT_CURR_MODE_BoardFragment";
 
 	public BoardFragment() {
 		
@@ -63,6 +64,10 @@ public class BoardFragment extends Fragment implements OnClickListener  {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		outState.putString(OUTSTAT_CURR_BOARD, mCurrBoard);
+		if (mCurrFragment == mNormalFragment)
+			outState.putInt(OUTSTAT_CURR_MODE, 1);
+		else
+			outState.putInt(OUTSTAT_CURR_MODE, 2);
 		super.onSaveInstanceState(outState);
 	}
 
@@ -70,21 +75,39 @@ public class BoardFragment extends Fragment implements OnClickListener  {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		FragmentManager fm = getChildFragmentManager();
 		FragmentTransaction ft = fm.beginTransaction();
-				
-		if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("post_mode", true)) {
-			mNormalFragment = (NormalFragment) fm.findFragmentByTag(FRAG_TAG_NORMAL);
+		
+		int mode = 1;
+		
+		if (savedInstanceState != null ) 
+			mode = savedInstanceState.getInt(OUTSTAT_CURR_MODE);
+		else if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("post_mode", true))
+			mode = 1;
+		else 
+			mode = 2;
+						
+		mNormalFragment = (NormalFragment) fm.findFragmentByTag(FRAG_TAG_NORMAL);
+		mTopicFragment = (TopicFragment) fm.findFragmentByTag(FRAG_TAG_TOPIC);
+		switch (mode) {
+		case 1:
 			if (mNormalFragment == null) {
 				mNormalFragment = new NormalFragment(mCurrBoard);
 				ft.add(R.id.frag_board, mNormalFragment, FRAG_TAG_NORMAL);
 			}			
 			mCurrFragment = mNormalFragment;
-		} else {
-			mTopicFragment = (TopicFragment) fm.findFragmentByTag(FRAG_TAG_TOPIC);
+			if (mTopicFragment != null) 
+				ft.hide(mTopicFragment);
+			ft.show(mNormalFragment);
+			break;
+		case 2:			
 			if (mTopicFragment == null) {
 				mTopicFragment = new TopicFragment(mCurrBoard);
 				ft.add(R.id.frag_board, mTopicFragment, FRAG_TAG_TOPIC);
 			}
 			mCurrFragment = mTopicFragment;
+			if (mNormalFragment != null)
+				ft.hide(mNormalFragment);
+			ft.show(mTopicFragment);
+			break;
 		}
 		ft.commit();
 		
@@ -145,6 +168,17 @@ public class BoardFragment extends Fragment implements OnClickListener  {
 			break;
 		}
 		
+	}
+	@Override
+	public int compareTo(BoardFragment frag) {
+		if (frag == null)
+			return 1;
+		Bundle bundle = frag.getArguments();
+		int pos = bundle.getInt(BoardFragmentPagerAdapter.FRAG_ARG_KEY);
+		bundle = getArguments();
+		int pos2 = bundle.getInt(BoardFragmentPagerAdapter.FRAG_ARG_KEY);
+		
+		return pos2 - pos;
 	}
 
 }

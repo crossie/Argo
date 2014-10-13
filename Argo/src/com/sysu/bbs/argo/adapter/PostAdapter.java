@@ -39,12 +39,14 @@ import com.sysu.bbs.argo.util.SimpleErrorListener;
 
 public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListener {
 
-	private static HashMap<String, Post> mPostMap;
+	private HashMap<String, Post> mPostMap;
 	private String mBoardName;
 
-	public PostAdapter(Context con, int resource, List<PostHead> objects, String boardname) {
+	public PostAdapter(Context con, int resource, List<PostHead> objects, 
+			HashMap<String, Post> postMap, String boardname) {
 		super(con, resource, objects);
-		mPostMap = new HashMap<String, Post>();
+		//mPostMap = new HashMap<String, Post>();
+		mPostMap = postMap;
 		mBoardName = boardname;
 		//mRequestQueue = Volley.newRequestQueue(getContext());
 	}

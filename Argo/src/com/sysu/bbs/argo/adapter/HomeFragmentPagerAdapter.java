@@ -38,7 +38,8 @@ public class HomeFragmentPagerAdapter extends AbstractFragmentPagerAdapter {
 	
 	@Override
 	public int getCount() {
-		return 3;
+		return 1;
+		//return 3;
 	}
 
 	@Override

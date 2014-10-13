@@ -45,6 +45,8 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		OnItemClickListener {
 
 	private PostAdapter mPostAdapter;
+	private HashMap<String, Post> mPostMap;
+	private static final String OUTSTATE_POST_MAP = "OUTSTATE_POST_MAP_NormalFragment";
 
 	public NormalFragment() {
 		
@@ -73,13 +75,25 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		//super.onActivityCreated(...) has to be the first statement
 		//because instance state is restored there
 		super.onActivityCreated(savedInstanceState);
+		if (savedInstanceState != null)
+			mPostMap = (HashMap<String, Post>) savedInstanceState.get(OUTSTATE_POST_MAP);
+		else {
+			mPostMap = new HashMap<String, Post>();
+		}
 		mPostAdapter = new PostAdapter(getActivity(),
-				android.R.layout.simple_list_item_1, mDataList, mCurrBoard);
+				android.R.layout.simple_list_item_1, mDataList, mPostMap, mCurrBoard);
+
 		mAdapter = mPostAdapter;
 		mListView.setAdapter(mAdapter);
 		mListView.setOnItemClickListener(this);
 		registerForContextMenu(mListView.getRefreshableView());
 		
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(OUTSTATE_POST_MAP, mPostMap);
 	}
 
 	@Override
@@ -122,7 +136,7 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		if (item.getGroupId() != R.layout.frag_normal)
+		if (item.getGroupId() != R.layout.frag_normal || !getParentFragment().getUserVisibleHint())
 			return false;
 
 		final AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
