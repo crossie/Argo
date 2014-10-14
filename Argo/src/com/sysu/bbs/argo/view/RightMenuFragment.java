@@ -10,8 +10,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface.OnClickListener;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -31,11 +31,10 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request.Method;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -52,6 +51,7 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 	private TextView mUserid;
 
 	private ProgressDialog mLogoutProgressDialog;
+	private ProgressDialog mCheckUpdateProgressDialog;
 
 	private BroadcastReceiver mSessionStatusReceiver;
 
@@ -169,62 +169,65 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 			;
 			break;
 		case 3:
-			final ProgressBar loading = (ProgressBar)getActivity().findViewById(R.id.checkUpdateLoading);
-			loading.setVisibility(View.VISIBLE);
-			String requestUrl = "https://raw.githubusercontent.com/bao050400287/argorel/master/check_update.html";
-			SessionManager.getRequestQueue().add(new JsonObjectRequest(requestUrl, null,
+			mCheckUpdateProgressDialog = new ProgressDialog(getActivity());
+			mCheckUpdateProgressDialog.setMessage("检查更新中...");
+			mCheckUpdateProgressDialog.setCancelable(false);
+			mCheckUpdateProgressDialog
+					.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			mCheckUpdateProgressDialog.show();
+			String requestUrl = "https://raw.githubusercontent.com/crossie/argorel/master/check_update.html";			
+			JsonObjectRequest checkUpdateRequest =	new JsonObjectRequest(requestUrl, null,
 				new Response.Listener<JSONObject>() {
 					@Override
 					public void onResponse(final JSONObject obj) {
-						loading.setVisibility(View.GONE);
+
 						try {
 							PackageInfo pi = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
 							if (obj.getInt("versionCode") > pi.versionCode){
+								final String url = obj.getString("url");
 								new AlertDialog.Builder(getActivity(),AlertDialog.THEME_HOLO_DARK)   
 								.setTitle("发现新版本")  
-								.setMessage("是否更新到最新版本？")  
-								.setPositiveButton("是", new OnClickListener(){
+								.setMessage(obj.getString("description"))  
+								.setPositiveButton("下载", new OnClickListener(){
 									@Override
 									public void onClick(DialogInterface dialog,
 											int which) {
-										// TODO Auto-generated method stub
 										Intent intent = new Intent();        
 										intent.setAction("android.intent.action.VIEW");    
-										try {
-											Uri content_url = Uri.parse(obj.getString("url"));
-											intent.setData(content_url);  
-											startActivity(intent);
-										} catch (JSONException e) {
-											Toast.makeText(getActivity(), "更新链接错误",
-												     Toast.LENGTH_SHORT).show();
-										}   
+										Uri content_url = Uri.parse(url);
+										intent.setData(content_url);  
+										startActivity(intent);
 									}
 								})  
-								.setNegativeButton("否", null)  
+								.setNegativeButton("取消", null)  
 								.show();
 							} else {
 								Toast.makeText(getActivity(), "暂时没更新",
 									     Toast.LENGTH_SHORT).show();
 							}
 						} catch (NameNotFoundException e1) {
-							loading.setVisibility(View.GONE);
 							Toast.makeText(getActivity(), "系统版本错误",
 								     Toast.LENGTH_SHORT).show();
 						} catch (JSONException e) {
-							loading.setVisibility(View.GONE);
 							Toast.makeText(getActivity(), "获取更新数据错误",
 								     Toast.LENGTH_SHORT).show();
+						} finally {
+							if (mCheckUpdateProgressDialog != null)
+								mCheckUpdateProgressDialog.dismiss();
 						}
 					}
 				}, new Response.ErrorListener() {
 					@Override
 					public void onErrorResponse(VolleyError error) {
-						loading.setVisibility(View.GONE);
+						if (mCheckUpdateProgressDialog != null)
+							mCheckUpdateProgressDialog.dismiss();
 						Toast.makeText(getActivity(), "网络错误,请稍后再试",
 							     Toast.LENGTH_SHORT).show();
 					}
 				}
-			));
+			);
+			checkUpdateRequest.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+			SessionManager.getRequestQueue().add(checkUpdateRequest);
 			break;
 		case 1:
 			Intent intent = new Intent(getActivity(), DraftActivity.class);

@@ -141,7 +141,7 @@ public class SessionManager {
 			public void onErrorResponse(VolleyError error) {
 				Toast.makeText(context, "ÍøÂç´íÎó£¬ÎŞ·¨×¢Ïú",
 						Toast.LENGTH_LONG).show();
-				Intent intent = new Intent(BROADCAST_LOGIN);
+				Intent intent = new Intent(BROADCAST_LOGOUT);
 				intent.putExtra("success", false);
 				context.sendBroadcast(intent);
 			}
