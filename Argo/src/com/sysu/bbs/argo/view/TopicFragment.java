@@ -30,8 +30,17 @@ import com.sysu.bbs.argo.api.dao.PostHead;
 
 public class TopicFragment extends AbstractBoardFragment<PostHead> implements OnItemClickListener {
 
-	PostHeadAdapter mPostHeadAdapter;
+
+	private PostHeadAdapter mPostHeadAdapter;
 	
+	public TopicFragment() {
+		
+	}
+	public TopicFragment(String boardname) {
+		super(boardname);
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -50,14 +59,13 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-
+		super.onActivityCreated(savedInstanceState);
 		mPostHeadAdapter = new PostHeadAdapter(getActivity(), android.R.layout.simple_list_item_1, mDataList);
 		mAdapter = mPostHeadAdapter;
 		mListView.setAdapter(mAdapter);
 		//mListView.setOnLongClickListener(this);
 		registerForContextMenu(mListView.getRefreshableView());
 		
-		super.onActivityCreated(savedInstanceState);
 	}
 	
 	@Override
@@ -73,12 +81,12 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 		
 	}
 
-	@Override
+/*	@Override
 	protected void setAdapterBoard(String board) {
 		// TODO Auto-generated method stub
 		
 	}
-
+*/
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
@@ -93,7 +101,7 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		if (item.getGroupId() != R.layout.frag_topic)
+		if (item.getGroupId() != R.layout.frag_topic || !!getParentFragment().getUserVisibleHint())
 			return false;
 		
 		if (!getUserVisibleHint())

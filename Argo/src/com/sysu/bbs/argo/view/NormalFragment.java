@@ -45,7 +45,16 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		OnItemClickListener {
 
 	private PostAdapter mPostAdapter;
+	private HashMap<String, Post> mPostMap;
+	private static final String OUTSTATE_POST_MAP = "OUTSTATE_POST_MAP_NormalFragment";
 
+	public NormalFragment() {
+		
+	}
+	public NormalFragment(String boardname) {
+		super(boardname);
+		// TODO Auto-generated constructor stub
+	}
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -63,13 +72,28 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
+		//super.onActivityCreated(...) has to be the first statement
+		//because instance state is restored there
+		super.onActivityCreated(savedInstanceState);
+		if (savedInstanceState != null)
+			mPostMap = (HashMap<String, Post>) savedInstanceState.get(OUTSTATE_POST_MAP);
+		else {
+			mPostMap = new HashMap<String, Post>();
+		}
 		mPostAdapter = new PostAdapter(getActivity(),
-				android.R.layout.simple_list_item_1, mDataList, mCurrBoard);
+				android.R.layout.simple_list_item_1, mDataList, mPostMap, mCurrBoard);
+
 		mAdapter = mPostAdapter;
 		mListView.setAdapter(mAdapter);
 		mListView.setOnItemClickListener(this);
 		registerForContextMenu(mListView.getRefreshableView());
-		super.onActivityCreated(savedInstanceState);
+		
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(OUTSTATE_POST_MAP, mPostMap);
 	}
 
 	@Override
@@ -82,12 +106,12 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 
 	}
 
-	@Override
+/*	@Override
 	protected void setAdapterBoard(String board) {
-		mPostAdapter.setBoardName(board);
+		//mPostAdapter.setBoardName(board);
 
 	}
-
+*/
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
@@ -97,7 +121,7 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 		menu.add(R.layout.frag_normal, R.string.menu_title_topic, 0, R.string.menu_title_topic);
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
 		Post post = mPostAdapter.getPost(mPostAdapter.getItem(info.position - 1).getFilename());
-		if (post.getPerm_del().equals("1")) {
+		if (post != null && "1".equals(post.getPerm_del())) {
 			menu.add(R.layout.frag_normal, R.string.menu_title_delete, 0, R.string.menu_title_delete);
 		} 
 	}
@@ -112,7 +136,7 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		if (item.getGroupId() != R.layout.frag_normal)
+		if (item.getGroupId() != R.layout.frag_normal || !getParentFragment().getUserVisibleHint())
 			return false;
 
 		final AdapterContextMenuInfo info = (AdapterContextMenuInfo) item

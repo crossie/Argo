@@ -61,7 +61,11 @@ import com.sysu.bbs.argo.api.dao.Section;
 import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
-
+/**
+ * 左滑菜单，用于导航，选择版面
+ * @author scim
+ *
+ */
 public class LeftMenuFragment extends DialogFragment implements
 		OnItemClickListener, OnRefreshListener2<ExpandableListView>,
 		OnChildClickListener {
@@ -70,19 +74,29 @@ public class LeftMenuFragment extends DialogFragment implements
 	private final String CN = "CN";
 	private final String SECCODE = "SECCODE";
 	private final String SECNAME = "SECNAME";
+	/**
+	 * used to indicate whether there are unread posts in a board
+	 */
 	private final String UNREAD_MARK = " ..";
-	//used to control how many left to clear unread status
+	
+	private static final String OUTSTATE_SECTION_GROUP_LIST_KEY = "OUTSTATE_SECTION_GROUP_LIST_KEY";
+	private static final String OUTSTATE_FAV_LIST_KEY = "OUTSTATE_FAV_LIST_KEY";
+	private static final String OUTSTATE_BOARD_LIST_KEY = "OUTSTATE_BOARD_LIST_KEY";
+	private static final String OUTSTATE_SEARCH_LIST_KEY = "OUTSTATE_SEARCH_LIST_KEY";
+	/**
+	 * used to control how many left to clear unread status
+	 */
 	private int mHowmanytogo;
 
 	private AutoCompleteTextView mSearchBoard;
 	private PullToRefreshExpandableListView mBoardListView;
-	private List<Map<String, Spanned>> mSectionGroupList = new ArrayList<Map<String, Spanned>>();
+	private ArrayList<Map<String, Spanned>> mSectionGroupList = null;
 	private String[] mGroupFrom = new String[] { SECNAME };
 	private int[] mGroupTo = new int[] { android.R.id.text1 };
 
-	private List<Map<String, Spanned>> mFavList = new ArrayList<Map<String, Spanned>>();
-	private List<List<Map<String, Spanned>>> mBoardList = new ArrayList<List<Map<String, Spanned>>>();
-	private List<Map<String, String>> mSearchList = new ArrayList<Map<String, String>>();
+	private ArrayList<Map<String, Spanned>> mFavList = null;
+	private ArrayList<List<Map<String, Spanned>>> mBoardList = null;
+	private ArrayList<Map<String, String>> mSearchList = null;
 	private String[] mChildFrom = new String[] { EN, CN };
 	private int[] mChildTo = new int[] { android.R.id.text1, android.R.id.text2 };
 
@@ -93,25 +107,43 @@ public class LeftMenuFragment extends DialogFragment implements
 	//private TextView mMailHeader;
 
 	//private String mUserid = null;
-	private String mCurrBoard = BOARDNAME_TOP10;
+	//private String mCurrBoard = BOARDNAME_HOME;
 
 	BoardChangedListener mBoardChangedListener;
 
 	//private RequestQueue mRequestQueue = null;
 
-	private static final String BOARDNAME_TOP10 = "今日十大";
+	private static final String BOARDNAME_HOME = "首页";
 	private BroadcastReceiver mSessionStatusReceiver;
 	
 	ProgressDialog mClearUnreadProgressDialog = null;
 	
-	private boolean mInitialize = false;
+	//private boolean mInitialize = false;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 
 		View v = inflater.inflate(R.layout.frag_left_menu, container, false);
 
+		if (savedInstanceState != null) {
+			mSearchList = (ArrayList<Map<String, String>>) savedInstanceState.get(OUTSTATE_SEARCH_LIST_KEY);
+			mBoardList = (ArrayList<List<Map<String, Spanned>>>) savedInstanceState.get(OUTSTATE_BOARD_LIST_KEY);
+			mFavList = (ArrayList<Map<String, Spanned>>) savedInstanceState.get(OUTSTATE_FAV_LIST_KEY);
+			mSectionGroupList = (ArrayList<Map<String, Spanned>>) savedInstanceState.get(OUTSTATE_SECTION_GROUP_LIST_KEY);
+		} else {
+			mSearchList = new ArrayList<Map<String, String>>();
+			mBoardList = new ArrayList<List<Map<String, Spanned>>>();
+			mFavList = new ArrayList<Map<String, Spanned>>();
+			mSectionGroupList = new ArrayList<Map<String, Spanned>>();
+			
+			Map<String, Spanned> favMap = new HashMap<String, Spanned>();
+			favMap.put(SECNAME, Html.fromHtml("收藏夹"));
+			mSectionGroupList.add(favMap);
+			mBoardList.add(mFavList);
+		}
+		
 		mBoardListView = (PullToRefreshExpandableListView) v
 				.findViewById(R.id.menu_left_list);
 		mBoardAdapter = new SimpleExpandableListAdapter(getActivity(),
@@ -185,17 +217,17 @@ public class LeftMenuFragment extends DialogFragment implements
 
 		if (getDialog() == null) {
 
-			TextView top10Header = (TextView) inflater.inflate(
+			TextView homeHeader = (TextView) inflater.inflate(
 					android.R.layout.simple_list_item_1, null);
-			top10Header.setText("今日十大");
+			homeHeader.setText(BOARDNAME_HOME);
 			// top10Header.setCompoundDrawablesWithIntrinsicBounds(R.drawable.top10,
 			// 0, 0, 0);
-			top10Header.setOnClickListener(new OnClickListener() {
+			homeHeader.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View arg0) {
-					mCurrBoard = BOARDNAME_TOP10;
-					mBoardChangedListener.changeBoard(BOARDNAME_TOP10);
+					//mCurrBoard = BOARDNAME_HOME;
+					mBoardChangedListener.changeBoard(BOARDNAME_HOME);
 
 				}
 
@@ -203,7 +235,7 @@ public class LeftMenuFragment extends DialogFragment implements
 
 			mHeader = new LinearLayout(getActivity());
 			mHeader.setOrientation(LinearLayout.VERTICAL);
-			mHeader.addView(top10Header);
+			mHeader.addView(homeHeader);
 			/*
 			 * mMailHeader = (TextView)
 			 * getLayoutInflater().inflate(android.R.layout.simple_list_item_1,
@@ -230,12 +262,7 @@ public class LeftMenuFragment extends DialogFragment implements
 		mBoardListView.setOnRefreshListener(this);
 		mBoardListView.getRefreshableView().setOnChildClickListener(this);
 		registerForContextMenu(mBoardListView.getRefreshableView());
-		
-		Map<String, Spanned> favMap = new HashMap<String, Spanned>();
-		favMap.put(SECNAME, Html.fromHtml("收藏夹"));
-		mSectionGroupList.add(favMap);
-		mBoardList.add(mFavList);
-		
+			
 		mSessionStatusReceiver = new BroadcastReceiver() {
 
 			@Override
@@ -245,7 +272,7 @@ public class LeftMenuFragment extends DialogFragment implements
 				if (action.equals(SessionManager.BROADCAST_LOGIN)) {
 					String userid = intent.getStringExtra("userid");
 					if (userid != null && !userid.equals("")) {
-						mInitialize = true;
+						//mInitialize = true;
 						refreshSection();
 						refreshFavorite();
 					}
@@ -277,14 +304,6 @@ public class LeftMenuFragment extends DialogFragment implements
 			e.printStackTrace();
 		}
 		
-		if (!mInitialize) {
-			mInitialize = true;
-			if (SessionManager.isLoggedIn) {
-				refreshFavorite();
-			}
-			
-			refreshSection();
-		}
 	}
 
 	@Override
@@ -298,6 +317,8 @@ public class LeftMenuFragment extends DialogFragment implements
 		}
 	}
 
+
+	@SuppressWarnings({ "deprecation" })
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 
@@ -317,7 +338,24 @@ public class LeftMenuFragment extends DialogFragment implements
 		mBoardListView.setRefreshingLabel(getActivity().getString(R.string.label_refreshing), 
 				Mode.PULL_FROM_START);
 
+		if (savedInstanceState == null) {
+			//mInitialize = true;
+			if (SessionManager.isLoggedIn) {
+				refreshFavorite();
+			}
+			
+			refreshSection();
+		}
 		super.onActivityCreated(savedInstanceState);
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		outState.putSerializable(OUTSTATE_SEARCH_LIST_KEY, mSearchList);
+		outState.putSerializable(OUTSTATE_BOARD_LIST_KEY, mBoardList);
+		outState.putSerializable(OUTSTATE_FAV_LIST_KEY, mFavList);
+		outState.putSerializable(OUTSTATE_SECTION_GROUP_LIST_KEY, mSectionGroupList);
+		super.onSaveInstanceState(outState);
 	}
 
 	private Map<String, Spanned> newBoardItem(Board board) {
@@ -485,64 +523,21 @@ public class LeftMenuFragment extends DialogFragment implements
 
 	}
 
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.menu_main, menu);
-		super.onCreateOptionsMenu(menu, inflater);
-	}
-
-	@Override
-	public void onPrepareOptionsMenu(Menu menu) {
-
-		MenuItem deleteFavorite = menu.findItem(R.id.delete_from_favorite);
-		MenuItem addToFavorite = menu.findItem(R.id.add_to_favorite);
-		if (mCurrBoard.equals(BOARDNAME_TOP10)) {
-			deleteFavorite.setVisible(false);
-			addToFavorite.setVisible(false);
-			return;
-		}
-		boolean isFavorite = false;
-		List<Map<String, Spanned>> favoriteList = mBoardList.get(0);
-		for (Map<String, Spanned> item : favoriteList) {
-			String boardname = item.get(EN).toString().replace(UNREAD_MARK, "");
-			if (boardname.equals(mCurrBoard)) {
-				isFavorite = true;
-				break;
-			}
-		}
-
-		if (isFavorite) {
-			deleteFavorite.setVisible(true);
-			addToFavorite.setVisible(false);
-		} else {
-			deleteFavorite.setVisible(false);
-			addToFavorite.setVisible(true);
-		}
-
-		if (!SessionManager.isLoggedIn) {
-			deleteFavorite.setVisible(false);
-			addToFavorite.setVisible(false);
-		}
-
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	private void manipulateFav(final int itemId, final String board) {
 
 		HashMap<String, String> param = new HashMap<String, String>();
-		param.put("boardname", mCurrBoard);
+		param.put("boardname", board);
 		String url = null;
-		final int itemId = item.getItemId();
 
 		switch (itemId) {
-		case R.id.delete_from_favorite:
+		case R.string.delete_from_favorite:
 			url = API.POST.AJAX_USER_DELFAV;
 			break;
-		case R.id.add_to_favorite:
+		case R.string.add_to_favorite:
 			url = API.POST.AJAX_USER_ADDFAV;
 			break;
 		default:
-			return false;
+			return;
 
 		}
 
@@ -555,17 +550,17 @@ public class LeftMenuFragment extends DialogFragment implements
 					if (res.getString("success").equals("1")) {
 						Toast.makeText(getActivity(), "操作成功", Toast.LENGTH_SHORT)
 								.show();
-						if (itemId == R.id.delete_from_favorite) {
+						if (itemId == R.string.delete_from_favorite) {
 							for (Map<String, Spanned> item : mFavList) {
 								String boardname = item.get(EN).toString().replace(UNREAD_MARK, "");
-								if (boardname.equals(mCurrBoard)) {
+								if (boardname.equals(board)) {
 									mFavList.remove(item);
 									mBoardAdapter.notifyDataSetChanged();
 									getActivity().invalidateOptionsMenu();
 									break;
 								}
 							}
-						} else if (itemId == R.id.add_to_favorite) {
+						} else if (itemId == R.string.add_to_favorite) {
 							refreshFavorite();
 						}
 					} else {
@@ -587,8 +582,6 @@ public class LeftMenuFragment extends DialogFragment implements
 		favOp.setTag(url);
 		favOp.setRetryPolicy(new DefaultRetryPolicy(15000, 0, 2));
 		SessionManager.getRequestQueue().add(favOp);
-
-		return true;
 	}
 
 	@Override
@@ -598,8 +591,8 @@ public class LeftMenuFragment extends DialogFragment implements
 		TextView en = (TextView) item.findViewById(android.R.id.text1);
 		String boardname = en.getText().toString();
 
-		mCurrBoard = boardname.replace(UNREAD_MARK, "");
-		mBoardChangedListener.changeBoard(mCurrBoard);
+		//mCurrBoard = boardname.replace(UNREAD_MARK, "");
+		mBoardChangedListener.changeBoard(boardname.replace(UNREAD_MARK, ""));
 		if (getDialog() != null) {
 			getDialog().dismiss();
 		}
@@ -612,8 +605,8 @@ public class LeftMenuFragment extends DialogFragment implements
 		TextView en = (TextView) view.findViewById(android.R.id.text1);
 		String boardname = en.getText().toString();
 		mSearchBoard.setText("");
-		mCurrBoard = boardname.replace(UNREAD_MARK, "");
-		mBoardChangedListener.changeBoard(boardname);
+		//mCurrBoard = boardname.replace(UNREAD_MARK, "");
+		mBoardChangedListener.changeBoard(boardname.replace(UNREAD_MARK, ""));
 		if (getDialog() != null) {
 			getDialog().dismiss();
 		}
@@ -738,10 +731,42 @@ public class LeftMenuFragment extends DialogFragment implements
 	
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		if (SessionManager.isLoggedIn) {
-			menu.add(R.layout.frag_left_menu, R.string.clear_unread, 0, R.string.clear_unread);
+		if (!SessionManager.isLoggedIn) 
+			return;
+		ExpandableListContextMenuInfo info = (ExpandableListContextMenuInfo) menuInfo;
+		//添加清除未读的菜单
+		//第一个参数用来区分是哪里的context menu被按
+		//第二个参数是菜单id
+		//第三个参数是菜单的顺序
+		//第四个参数是菜单的文字
+		//其他地方的菜单的参数意义相同
+		menu.add(R.layout.frag_left_menu, R.string.clear_unread, 0, R.string.clear_unread);
+		//如果长按的分组，不用添加收藏夹的操作菜单
+		if (ExpandableListView.PACKED_POSITION_TYPE_GROUP 
+				== ExpandableListView.getPackedPositionType(info.packedPosition))
+			return;
+		int groupPos = ExpandableListView.getPackedPositionGroup(info.packedPosition);
+		int childPos = ExpandableListView.getPackedPositionChild(info.packedPosition);
+		//获取被长的版面名称
+		String board = mBoardList.get(groupPos).get(childPos).
+				get(EN).toString().replace(UNREAD_MARK, "");	
+		
+		boolean isFavorite = false;
+		List<Map<String, Spanned>> favoriteList = mBoardList.get(0);
+		for (Map<String, Spanned> item : favoriteList) {
+			String boardname = item.get(EN).toString().replace(UNREAD_MARK, "");
+			if (boardname.equals(board)) {//长按的是收藏夹中的一个
+				isFavorite = true;
+				break;
+			}
 		}
-		//super.onCreateContextMenu(menu, v, menuInfo);
+		
+		if (isFavorite) {
+			menu.add(R.layout.frag_left_menu, R.string.delete_from_favorite, 0, R.string.delete_from_favorite);
+		} else {
+			menu.add(R.layout.frag_left_menu, R.string.add_to_favorite, 0, R.string.add_to_favorite);
+		}
+
 		
 	}
 	
@@ -751,11 +776,11 @@ public class LeftMenuFragment extends DialogFragment implements
 			return false;
 		ExpandableListContextMenuInfo info = (ExpandableListContextMenuInfo) item
 				.getMenuInfo();
+		int groupPos = ExpandableListView.getPackedPositionGroup(info.packedPosition);
+		int childPos = ExpandableListView.getPackedPositionChild(info.packedPosition);
+
 		switch(item.getItemId()) {
-		case R.string.clear_unread:
-			int groupPos = ExpandableListView.getPackedPositionGroup(info.packedPosition);
-			int childPos = ExpandableListView.getPackedPositionChild(info.packedPosition);
-			
+		case R.string.clear_unread:			
 			mClearUnreadProgressDialog = new ProgressDialog(getActivity());
 			mClearUnreadProgressDialog.setCancelable(true);
 			mClearUnreadProgressDialog.setOnCancelListener(new OnCancelListener() {
@@ -788,6 +813,12 @@ public class LeftMenuFragment extends DialogFragment implements
 						get(EN).toString().replace(UNREAD_MARK, "");
 				clearUnread(boardname);
 			}
+			return true;
+		case R.string.delete_from_favorite:
+		case R.string.add_to_favorite:
+			manipulateFav(item.getItemId(),
+					mBoardList.get(groupPos).get(childPos).
+						get(EN).toString().replace(UNREAD_MARK, ""));
 			return true;
 		}
 		

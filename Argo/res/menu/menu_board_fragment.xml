@@ -18,4 +18,17 @@
         android:orderInCategory="100"
         android:title="@string/add_new_topic"
         app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_board_close"
+        android:orderInCategory="100"
+        android:title="@string/menu_tab_close"/>
+    <item
+        android:id="@+id/menu_board_close_others"
+        android:orderInCategory="100"
+        android:title="@string/menu_tab_close_others"/>
+    <item
+        android:id="@+id/menu_board_close_all"
+        android:orderInCategory="100"
+        android:title="@string/menu_tab_close_all"/>
+
 </menu>

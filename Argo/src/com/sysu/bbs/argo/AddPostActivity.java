@@ -29,7 +29,11 @@ import com.sysu.bbs.argo.view.LeftMenuFragment;
 //import com.sysu.bbs.argo.view.LoginDialog.Communicator;
 import com.sysu.bbs.argo.view.LeftMenuFragment.BoardChangedListener;
 import com.sysu.bbs.argo.view.LoginDialog;
-
+/**
+ * 发表新帖
+ * @author abcd
+ *
+ */
 public class AddPostActivity extends SwipeBackActivity implements
 		BoardChangedListener {
 
@@ -60,6 +64,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 		String action = intent.getAction();
 		String type = intent.getType();
 
+		//从其他app分享过来
 		if (Intent.ACTION_SEND.equals(action) && "text/plain".equals(type)) {
 
 			mEditContent.setText(intent.getStringExtra(Intent.EXTRA_TEXT));

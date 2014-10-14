@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="@string/hint_title"
-        android:textSize="14sp" >
+        android:textSize="16sp" >
     </EditText>
 
     <EditText
@@ -25,7 +25,7 @@
         android:layout_weight="1"
         android:gravity="top"
         android:inputType="textMultiLine"
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:hint="@string/hint_content" >

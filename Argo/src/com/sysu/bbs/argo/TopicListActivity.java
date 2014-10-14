@@ -26,6 +26,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
@@ -45,24 +46,34 @@ import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
 
 public class TopicListActivity extends SwipeBackActivity implements
-		OnItemClickListener {
+		OnItemClickListener, OnClickListener {
 
 	private PullToRefreshListView mTopicListView;
+	/**
+	 * view the post in descending order
+	 */
 	private ArrayList<PostHead> mFileNameListDesc;
 	private PostAdapter mPostAdapterDesc;
+	/**
+	 * view the post in ascending order
+	 */
 	private ArrayList<PostHead> mFileNameListAsec;
 	private PostAdapter mPostAdapterAsec;
 	private PostAdapter mCurrAdapter;
+	private HashMap<String, Post> mPostMap;
 	private String mBoardName;
 	private String mFileName;
 
-	//RequestQueue requestQueue;
-
+	private static final String OUTSTATE_FILE_NAME_DESC = "OUTSTATE_FILE_NAME_DESC";
+	private static final String OUTSTATE_FILE_NAME_ASEC = "OUTSTATE_FILE_NAME_ASEC";
+	private static final String OUTSTATE_POST_MAP = "OUTSTATE_POST_MAP_TopicListActivity";
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_topiclist);
 
+		findViewById(R.id.floating_btn_switch_order).setOnClickListener(this);
 		/*getSwipeBackLayout().setEdgeSize(
 				getWindowManager().getDefaultDisplay().getWidth());*/
 		getSwipeBackLayout().setSensitivity(this, 0.3f);
@@ -71,13 +82,20 @@ public class TopicListActivity extends SwipeBackActivity implements
 		mFileName = intent.getStringExtra("filename");
 
 		mTopicListView = (PullToRefreshListView) findViewById(R.id.activity_topic_list);
-		mFileNameListDesc = new ArrayList<PostHead>();
-		mFileNameListAsec = new ArrayList<PostHead>();
+		if (savedInstanceState == null) {
+			mFileNameListDesc = new ArrayList<PostHead>();
+			mFileNameListAsec = new ArrayList<PostHead>();
+			mPostMap = new HashMap<String, Post>();
+		} else {
+			mFileNameListAsec = (ArrayList<PostHead>) savedInstanceState.get(OUTSTATE_FILE_NAME_ASEC);
+			mFileNameListDesc = (ArrayList<PostHead>) savedInstanceState.get(OUTSTATE_FILE_NAME_DESC);
+			mPostMap = (HashMap<String, Post>) savedInstanceState.get(OUTSTATE_POST_MAP);
+		}
 		mPostAdapterDesc = new PostAdapter(this,
-				android.R.layout.simple_list_item_1, mFileNameListDesc,
+				android.R.layout.simple_list_item_1, mFileNameListDesc, mPostMap,
 				mBoardName);
 		mPostAdapterAsec = new PostAdapter(this,
-				android.R.layout.simple_list_item_1, mFileNameListAsec,
+				android.R.layout.simple_list_item_1, mFileNameListAsec, mPostMap,
 				mBoardName);
 		if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("post_order", true)) {
 			mTopicListView.getRefreshableView().setAdapter(mPostAdapterDesc);
@@ -92,11 +110,6 @@ public class TopicListActivity extends SwipeBackActivity implements
 
 		registerForContextMenu(mTopicListView.getRefreshableView());
 
-		
-
-		//requestQueue = Volley.newRequestQueue(this);
-
-		// loadPost(0, filenames.length);
 		String url = API.GET.AJAX_POST_TOPICLIST + "?boardname=" + mBoardName
 				+ "&filename=" + mFileName;
 		StringRequest topicListRequest = new StringRequest(Method.GET, url,
@@ -134,51 +147,17 @@ public class TopicListActivity extends SwipeBackActivity implements
 				}, new SimpleErrorListener(this, ""));
 		topicListRequest.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
 		topicListRequest.setTag(API.GET.AJAX_POST_TOPICLIST);
-		SessionManager.getRequestQueue().add(topicListRequest);
+		if (savedInstanceState == null || mFileNameListAsec.size() == 0 || mFileNameListDesc.size() == 0)
+			SessionManager.getRequestQueue().add(topicListRequest);
 
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.menu_topic_list, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
-
-		MenuItem asec = menu.findItem(R.id.chronologically_asec);
-		MenuItem desc = menu.findItem(R.id.chronologically_desc);
-		if (mCurrAdapter == mPostAdapterDesc) {
-			asec.setVisible(true);
-			desc.setVisible(false);
-
-		} else {
-			asec.setVisible(false);
-			desc.setVisible(true);
-
-		}
-
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-
-		switch (item.getItemId()) {
-		case R.id.chronologically_asec:
-			mTopicListView.getRefreshableView().setAdapter(mPostAdapterAsec);
-			mCurrAdapter = mPostAdapterAsec;
-			break;
-		case R.id.chronologically_desc:
-			mTopicListView.getRefreshableView().setAdapter(mPostAdapterDesc);
-			mCurrAdapter = mPostAdapterDesc;
-			break;
-		default:
-			return false;
-		}
-
-		return true;
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putParcelableArrayList(OUTSTATE_FILE_NAME_ASEC, mFileNameListAsec);
+		outState.putParcelableArrayList(OUTSTATE_FILE_NAME_DESC, mFileNameListDesc);
+		outState.putSerializable(OUTSTATE_POST_MAP, mPostMap);
+		super.onSaveInstanceState(outState);
 	}
 
 	@Override
@@ -296,5 +275,19 @@ public class TopicListActivity extends SwipeBackActivity implements
 			break;
 		}
 		return super.onContextItemSelected(item);
+	}
+
+	@Override
+	public void onClick(View view) {
+		if (view.getId() == R.id.floating_btn_switch_order) {
+			if (mCurrAdapter == mPostAdapterDesc) {
+				mTopicListView.getRefreshableView().setAdapter(mPostAdapterAsec);
+				mCurrAdapter = mPostAdapterAsec;
+			} else {
+				mTopicListView.getRefreshableView().setAdapter(mPostAdapterDesc);
+				mCurrAdapter = mPostAdapterDesc;
+			}
+		}
+		
 	}
 }

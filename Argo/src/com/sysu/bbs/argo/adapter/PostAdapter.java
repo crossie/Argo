@@ -39,15 +39,14 @@ import com.sysu.bbs.argo.util.SimpleErrorListener;
 
 public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListener {
 
-	private static HashMap<String, Post> mPostMap;
-	//how to initialize board name ?
+	private HashMap<String, Post> mPostMap;
 	private String mBoardName;
-	//private RequestQueue mRequestQueue;
 
-
-	public PostAdapter(Context con, int resource, List<PostHead> objects, String boardname) {
+	public PostAdapter(Context con, int resource, List<PostHead> objects, 
+			HashMap<String, Post> postMap, String boardname) {
 		super(con, resource, objects);
-		mPostMap = new HashMap<String, Post>();
+		//mPostMap = new HashMap<String, Post>();
+		mPostMap = postMap;
 		mBoardName = boardname;
 		//mRequestQueue = Volley.newRequestQueue(getContext());
 	}
@@ -259,7 +258,7 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 
 		getContext().startActivity(intent);
 	}
-
+/*
 	public String getBoardName() {
 		return mBoardName;
 	}
@@ -267,7 +266,7 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 	public void setBoardName(String boardName) {
 		this.mBoardName = boardName;
 	}
-	
+*/	
 	public Post getPost(String filename) {
 		return mPostMap.get(filename);
 	}
