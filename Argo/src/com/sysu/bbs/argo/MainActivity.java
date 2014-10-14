@@ -252,7 +252,7 @@ public class MainActivity extends FragmentActivity
 			//getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 			//changeTabs(VIEW_PAGER_TYPE_HOME);
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-			getActionBar().setSelectedNavigationItem(0);
+			//getActionBar().setSelectedNavigationItem(0);
 			mHomeViewPager.setCurrentItem(0);
 			mHomeViewPager.setVisibility(View.VISIBLE);			
 			mBoardViewPager.setVisibility(View.GONE);
