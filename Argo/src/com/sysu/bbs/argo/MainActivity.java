@@ -289,7 +289,7 @@ public class MainActivity extends FragmentActivity
 			super.onBackPressed();
 		else {
 			if (mSlidingMenu.isMenuShowing())
-				mSlidingMenu.showMenu();
+				mSlidingMenu.showContent();
 			Toast.makeText(this, "再按一次退出", Toast.LENGTH_SHORT).show();
 			new Handler().postDelayed(new Runnable() {
 				

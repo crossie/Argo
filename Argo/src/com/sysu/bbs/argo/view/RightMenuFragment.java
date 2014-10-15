@@ -156,8 +156,7 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			String version = info == null ? "unknown version"
-					: info.versionCode + ", " + info.versionName;
+			String version = info == null ? "unknown version" :  info.versionName;
 			TextView message = (TextView) builder
 					.setMessage(
 							Html.fromHtml("Argo "
