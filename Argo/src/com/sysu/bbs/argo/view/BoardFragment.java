@@ -56,7 +56,6 @@ public class BoardFragment extends Fragment implements OnClickListener, Comparab
 		setHasOptionsMenu(true);
 		if (savedInstanceState != null) {
 			mCurrBoard = savedInstanceState.getString(OUTSTAT_CURR_BOARD);
-			Log.e("BoardFragment", "onCreateView " + mCurrBoard);
 		}
 		return view;
 	}

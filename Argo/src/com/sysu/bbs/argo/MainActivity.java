@@ -284,7 +284,6 @@ public class MainActivity extends FragmentActivity
 	@Override
 	public void onBackPressed() {
 		mBackCounter++;
-		//Log.e("count", "" + mBackCounter);
 		if (mBackCounter > 1)
 			super.onBackPressed();
 		else {
@@ -347,7 +346,6 @@ public class MainActivity extends FragmentActivity
 		//ActionBar actionbar = getActionBar();
 		
 		for (String title: tabTitles) {
-			//Log.e("init tabs", title);
 			Tab tab = getActionBar().newTab();
 			tab.setTabListener(this);
 			tab.setText(title);
