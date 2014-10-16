@@ -20,6 +20,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -121,6 +123,7 @@ public class MainActivity extends FragmentActivity
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		mCookieStore = new PersistentCookieStore(this);
 		CookieManager cm = new CookieManager(mCookieStore,CookiePolicy.ACCEPT_ALL);
@@ -301,7 +304,29 @@ public class MainActivity extends FragmentActivity
 		}
 	}
 
-
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_main, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case android.R.id.home:
+			if (!mSlidingMenu.isMenuShowing())
+				mSlidingMenu.showMenu();
+			else
+				mSlidingMenu.showContent();
+			return true;
+		case R.id.show_right_menu:
+			if (!mSlidingMenu.isSecondaryMenuShowing())				
+				mSlidingMenu.showSecondaryMenu();
+			else
+				mSlidingMenu.showContent();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 	/**
 	 * 切换版面：切换到其他view pager，或者新打开一个版面
 	 */
