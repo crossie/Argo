@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 
 import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.R;
-import com.sysu.bbs.argo.adapter.BoardFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.BoardFragmentPagerAdapter;
 /**
  * 代表一个打开的版面，注意和AbstractBoardFragment的区别
  * @author scim

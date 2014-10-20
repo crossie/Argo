@@ -26,9 +26,9 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
-import com.sysu.bbs.argo.adapter.BoardFragmentPagerAdapter;
-import com.sysu.bbs.argo.adapter.HomeFragmentPagerAdapter;
-import com.sysu.bbs.argo.adapter.PrivateFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.BoardFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.HomeFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.PrivateFragmentPagerAdapter;
 import com.sysu.bbs.argo.util.PersistentCookieStore;
 import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.view.LeftMenuFragment;
@@ -340,6 +340,7 @@ public class MainActivity extends FragmentActivity
 			mBoardViewPager.setVisibility(View.GONE);
 			//TODO NOT YET IMPLEMENT
 			//getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 			//changeTabs(VIEW_PAGER_TYPE_HOME);
 			break;
 		case VIEW_PAGER_TYPE_PRIVATE:

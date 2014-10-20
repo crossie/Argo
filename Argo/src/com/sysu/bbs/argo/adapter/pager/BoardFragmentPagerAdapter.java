@@ -1,4 +1,4 @@
-package com.sysu.bbs.argo.adapter;
+package com.sysu.bbs.argo.adapter.pager;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package com.sysu.bbs.argo.adapter;
+package com.sysu.bbs.argo.adapter.pager;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

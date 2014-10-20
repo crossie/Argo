@@ -1,11 +1,14 @@
 package com.sysu.bbs.argo.adapter;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +33,7 @@ import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.sysu.bbs.argo.AddPostActivity;
+import com.sysu.bbs.argo.ImageViewerActivity;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.api.API;
 import com.sysu.bbs.argo.api.dao.Post;
@@ -58,17 +62,22 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 		TextView tvContent;
 		TextView tvQuote;
 		ImageButton btnReply;
+		ImageButton btnPicture;
+		ImageButton btnAttachment;
 		Request<String> request;
 		int position;
 
 		PostViewHolder(TextView userid, TextView title, TextView posttime, TextView content,
-				TextView quote, ImageButton reply) {
+				TextView quote, ImageButton reply, ImageButton picture,
+				ImageButton attachment) {
 			tvUserid = userid;
 			tvTitle = title;
 			tvPosttime = posttime;
 			tvContent = content;
 			tvQuote = quote;
 			btnReply = reply;
+			btnPicture = picture;
+			btnAttachment = attachment;
 		}
 
 	}
@@ -88,14 +97,21 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 			TextView tvQuote = (TextView) tmp.findViewById(R.id.post_quote);
 			ImageButton btnReply = (ImageButton) tmp
 					.findViewById(R.id.add_comment);
+			ImageButton btnPicture = (ImageButton) tmp.findViewById(R.id.view_image);
+			ImageButton btnAttachment = (ImageButton) tmp.findViewById(R.id.view_attachment);
 
 			tvQuote.setOnClickListener(this);
-			tvQuote.setVisibility(View.GONE);
 			btnReply.setOnClickListener(this);
+			btnPicture.setOnClickListener(this);
+			btnAttachment.setOnClickListener(this);
+			//加载过程中不显示这些view
+			tvQuote.setVisibility(View.GONE);
 			btnReply.setVisibility(View.GONE);
+			btnPicture.setVisibility(View.GONE);
+			btnAttachment.setVisibility(View.GONE);
 			
 			holder = new PostViewHolder(tvUserid, tvTitle, tvPosttime, tvContent, tvQuote,
-					btnReply);
+					btnReply, btnPicture, btnAttachment);
 
 			tmp.setTag(holder);
 		} else {
@@ -158,14 +174,20 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 		holder.request.setTag(API.GET.AJAX_POST_GET);
 		SessionManager.getRequestQueue().add(holder.request);
 	}
-	
+	/**
+	 * 设置或者加载各个view的值
+	 * @param holder
+	 * 要初始化的view holder
+	 * @param post
+	 * 用于初如化view holder的帖子
+	 */
 	private void setupHolder(PostViewHolder holder, Post post) {
 		if (post != null) {
 			String content = post.getParsedContent();
 			holder.tvContent.setText(content);
 			holder.tvContent.setTag(post);
 			
-			SimpleDateFormat sdf = new SimpleDateFormat("ddMMM HH:mm   ", Locale.US);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MMMdd日 HH:mm   ", Locale.CHINESE);
 			Calendar update = Calendar.getInstance();
 			update.setTimeInMillis(1000*Long.valueOf(post.getPost_time()));
 			Date date = update.getTime();
@@ -173,10 +195,29 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 			holder.tvTitle.setText(post.getTitle());
 			holder.tvPosttime.setText(sdf.format(date));
 			holder.tvUserid.setText(post.getUserid() +
-					"(" + post.getUsername() + ")");
+					"(" + (post.getUsername().equals("这家伙还没起昵称") ? "" : post.getUsername()) + ")");
 			holder.btnReply.setTag(post);
 			holder.btnReply.setImageResource(R.drawable.ic_action_chat);
 			holder.btnReply.setVisibility(View.VISIBLE);
+			
+			ArrayList<String> imageUrl = new ArrayList<String>();
+			Pattern pattern = Pattern.compile("((https?|ftp|gopher|telnet|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)",
+									Pattern.MULTILINE);
+			Matcher matcher = pattern.matcher(content);
+			while (matcher.find()) {
+				String url = content.substring(matcher.start(0), matcher.end(0));
+				String lower = url.toLowerCase();
+				//判断是不是图片链接
+				//TODO 发送HEAD request去判断链接是不是图片
+				if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") ||
+						lower.endsWith(".gif") || lower.endsWith(".bmp") ||
+						lower.endsWith(".png"))					
+					imageUrl.add(url);
+			}
+			if (imageUrl.size() > 0) {
+				holder.btnPicture.setVisibility(View.VISIBLE);
+				holder.btnPicture.setTag(imageUrl);
+			}
 	
 			if (post.getParsedQuote() != null && !post.getParsedQuote().equals("")) {
 				holder.tvQuote.setVisibility(View.VISIBLE);
@@ -191,8 +232,11 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 			holder.tvTitle.setText("");
 			holder.tvUserid.setText("");
 			holder.btnReply.setTag(null); 
+			//post 为null，说明帖子未加载，所以不显示这个view
 			holder.btnReply.setVisibility(View.GONE);
 			holder.tvQuote.setVisibility(View.GONE);
+			holder.btnAttachment.setVisibility(View.GONE);
+			holder.btnPicture.setVisibility(View.GONE);
 		}
 	}
 
@@ -236,6 +280,15 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 				textview.setEllipsize(TruncateAt.END);
 				textview.setMaxLines(2);
 			}
+			break;
+		case R.id.view_attachment:
+			break;
+		case R.id.view_image:
+			Intent intent = new Intent(getContext(), ImageViewerActivity.class);
+			Bundle param = new Bundle();
+			param.putStringArrayList(ImageViewerActivity.IMAGE_LIST_KEY, (ArrayList<String>) v.getTag());
+			intent.putExtras(param);
+			getContext().startActivity(intent);
 			break;
 		default:
 			break;
