@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 
 import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,10 +19,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.ipaulpro.afilechooser.utils.FileUtils;
 import com.sysu.bbs.argo.util.PostService;
 import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.Splitter;
@@ -45,6 +49,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 
 	private BroadcastReceiver mLoginReceiver;
 
+	private static final int REQUEST_CODE = 6384;
 	// String mDraft;
 
 	@Override
@@ -177,6 +182,29 @@ public class AddPostActivity extends SwipeBackActivity implements
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_new_post, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.add_attachment:
+	        Intent target = FileUtils.createGetContentIntent();
+	        // Create the chooser Intent
+	        Intent intent = Intent.createChooser(
+	                target, getString(R.string.chooser_title));
+	        try {
+	            startActivityForResult(intent, REQUEST_CODE);
+	        } catch (ActivityNotFoundException e) {
+	            // The reason for the existence of aFileChooser
+	        }
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	public void onClick(View v) {

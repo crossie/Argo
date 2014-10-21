@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="10dp"
     android:focusable="false"
-    android:focusableInTouchMode="false" >
+    android:focusableInTouchMode="false"
+    android:orientation="vertical"
+    android:padding="10dp" >
 
     <EditText
         android:id="@+id/new_post_title"
@@ -23,20 +23,41 @@
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
         android:layout_weight="1"
-        android:gravity="top"
-        android:inputType="textMultiLine"
-        android:textSize="16sp"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:hint="@string/hint_content" >
+        android:gravity="top"
+        android:hint="@string/hint_content"
+        android:inputType="textMultiLine"
+        android:textSize="16sp" >
 
         <requestFocus />
     </EditText>
 
+    <FrameLayout
+        android:id="@+id/attach_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:id="@+id/image_view_attach"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:onClick="onClick" />
+
+        <ImageButton
+            android:id="@+id/del_attach"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:background="@drawable/add_comment_state_list"
+            android:onClick="onClick"
+            android:src="@drawable/ic_action_remove" />
+
+    </FrameLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-       >
+        android:layout_height="wrap_content" >
 
         <Button
             android:id="@+id/new_post_choose_board"
@@ -56,7 +77,6 @@
             android:background="@drawable/add_comment_state_list"
             android:onClick="onClick"
             android:src="@drawable/ic_action_send_now" />
-
     </RelativeLayout>
 
 </LinearLayout>

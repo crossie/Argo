@@ -69,4 +69,7 @@
 	<string name="menu_tab_close">关闭</string>
 	<string name="menu_tab_close_others">关闭其他</string>
 	<string name="menu_tab_close_all">关闭全部</string>
+	
+	<string name="chooser_title">选择附件</string>
+	<string name="choose_file">添加附件</string> 
 </resources>
