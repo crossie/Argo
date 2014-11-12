@@ -30,7 +30,16 @@ public class ImageViewerFragment extends Fragment {
 	private ImageView mImageView;
 	private PhotoViewAttacher mAttacher;
 	private ProgressBar mLoadingImagePB;
-	private String mUrl, mUrlHash;
+	/**
+	 * 要显示的图片的URL
+	 */
+	private String mUrl;
+	/**
+	 * 图片显示过后会在应用目录下有缓存，可通过这个hash找到这个缓存<br/>
+	 * 这个hash是和url对应的，目前的实现是用md5产生的，实际上并不唯一<br/>
+	 * 要实现得更好，只能用数据库实现了
+	 */
+	private String mUrlHash;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,

@@ -19,6 +19,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.ContextMenu;
@@ -149,6 +150,16 @@ public class TopicListActivity extends SwipeBackActivity implements
 		topicListRequest.setTag(API.GET.AJAX_POST_TOPICLIST);
 		if (savedInstanceState == null || mFileNameListAsec.size() == 0 || mFileNameListDesc.size() == 0)
 			SessionManager.getRequestQueue().add(topicListRequest);
+		
+		//实现退出时的动画,不明白为什么要这样写才行
+		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
+		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
+		activityStyle.recycle();
+		activityStyle = getTheme().obtainStyledAttributes(windowAnimationStyleResId, 
+				new int[] {android.R.attr.activityCloseEnterAnimation, android.R.attr.activityCloseExitAnimation});
+		activityCloseEnterAnimation = activityStyle.getResourceId(0, 0);
+		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
+		activityStyle.recycle();
 
 	}
 
@@ -289,5 +300,21 @@ public class TopicListActivity extends SwipeBackActivity implements
 			}
 		}
 		
+	}
+	/**
+	 * 用于设置退出动画
+	 */
+	protected int activityCloseEnterAnimation;
+	/**
+	 * 同上用于设置退出动画
+	 */
+	protected int activityCloseExitAnimation;
+	/**
+	 * 实现退出动画，未知为何要这样写才会有动画
+	 */
+	@Override
+	public void finish() {
+		super.finish();
+		overridePendingTransition(activityCloseEnterAnimation, activityCloseExitAnimation);
 	}
 }

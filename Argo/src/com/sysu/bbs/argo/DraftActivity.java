@@ -1,10 +1,17 @@
 package com.sysu.bbs.argo;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.os.FileObserver;
 import android.os.Handler;
@@ -49,6 +56,16 @@ public class DraftActivity extends SwipeBackActivity {
 		mHandler = new Handler();
 		mDraftObserver = new DraftObserver(draftDir.getAbsolutePath());
 		mDraftObserver.startWatching();
+		
+		//实现退出时的动画,不明白为什么要这样写才行
+		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
+		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
+		activityStyle.recycle();
+		activityStyle = getTheme().obtainStyledAttributes(windowAnimationStyleResId, 
+				new int[] {android.R.attr.activityCloseEnterAnimation, android.R.attr.activityCloseExitAnimation});
+		activityCloseEnterAnimation = activityStyle.getResourceId(0, 0);
+		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
+		activityStyle.recycle();
 	}
 
 	@Override
@@ -107,5 +124,55 @@ public class DraftActivity extends SwipeBackActivity {
 		}
 
 	}
+	
+	public static void add2Draft(File post, Bundle bundle) {
+		FileOutputStream fos = null; 
+		BufferedWriter bw = null; 
+		
+		try {
+			fos = new FileOutputStream(post);
+			bw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
+			bw.write(bundle.getString("type") + "\n");
+			bw.write(bundle.getString("boardname") + "\n");
+			bw.write(bundle.getString("articleid") + "\n");
+			bw.write(bundle.getString("title") + "\n");
+			bw.write(System.currentTimeMillis() + "\n");
+			bw.write(bundle.getString("attach"));
+			bw.write(bundle.getString("content"));
+			
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (bw != null) {
+				try {
+					bw.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	/**
+	 * 用于设置退出动画
+	 */
+	protected int activityCloseEnterAnimation;
+	/**
+	 * 同上用于设置退出动画
+	 */
+	protected int activityCloseExitAnimation;
+	/**
+	 * 实现退出动画，未知为何要这样写才会有动画
+	 */
+	@Override
+	public void finish() {
+		super.finish();
+		overridePendingTransition(activityCloseEnterAnimation, activityCloseExitAnimation);
+	}
+	
 
 }

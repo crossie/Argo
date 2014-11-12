@@ -4,9 +4,8 @@
     tools:context="com.sysu.bbs.argo.MainActivity" >
 
     <item
-        android:id="@+id/add_attachment"
+        android:id="@+id/new_post_choose_board"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_action_new_attachment"
         android:showAsAction="always"
         />
 

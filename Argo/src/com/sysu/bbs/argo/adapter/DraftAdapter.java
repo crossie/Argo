@@ -115,7 +115,11 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 		TextView tvBoardname;
 		ImageButton btnDelete;
 	}
-	
+	/**
+	 * 从文件中读取草稿
+	 * @param file
+	 * 保存草稿的文件
+	 */
 	private Post getPost(File file) {
 		FileInputStream fis = null;
 		BufferedReader br = null;
@@ -130,6 +134,7 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 			post.setFilename(br.readLine());
 			post.setTitle(br.readLine());
 			post.setPost_time(br.readLine());
+			//post.set
 			
 			String s = "", line;
 			while ((line = br.readLine()) != null)
