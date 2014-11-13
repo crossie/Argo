@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -289,6 +290,7 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 			param.putStringArrayList(ImageViewerActivity.IMAGE_LIST_KEY, (ArrayList<String>) v.getTag());
 			intent.putExtras(param);
 			getContext().startActivity(intent);
+			((Activity)getContext()).overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		default:
 			break;
@@ -310,6 +312,7 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 		intent.putExtras(param);
 
 		getContext().startActivity(intent);
+		((Activity)getContext()).overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 	}
 /*
 	public String getBoardName() {

@@ -142,112 +142,122 @@ public class RightMenuFragment extends Fragment implements OnItemClickListener {
 		switch (position) {
 		case 2:
 			startActivity(new Intent(getActivity(), SettingsActivity.class));
+			getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		case 4:
-			AlertDialog.Builder builder = new AlertDialog.Builder(
-					getActivity(), AlertDialog.THEME_HOLO_DARK);
-
-			PackageManager manager = getActivity().getPackageManager();
-			PackageInfo info = null;
-			try {
-				info = manager
-						.getPackageInfo(getActivity().getPackageName(), 0);
-			} catch (NameNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			String version = info == null ? "unknown version" :  info.versionName;
-			TextView message = (TextView) builder
-					.setMessage(
-							Html.fromHtml("Argo "
-									+ version
-									+ "<br/>Author:<br/>&nbsp;&nbsp;站内ID scim,<br/>"
-									+ "&nbsp;&nbsp;微博 <a href=\"http://weibo.com/crossie\">@输了就强退</a><br/>"))
-					.setTitle("关于").show().findViewById(android.R.id.message);
-			message.setMovementMethod(LinkMovementMethod.getInstance());
-			;
+			about();
 			break;
 		case 3:
-			mCheckUpdateProgressDialog = new ProgressDialog(getActivity());
-			mCheckUpdateProgressDialog.setMessage("检查更新中...");
-			mCheckUpdateProgressDialog.setCancelable(false);
-			mCheckUpdateProgressDialog
-					.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-			mCheckUpdateProgressDialog.show();
-			String requestUrl = "https://raw.githubusercontent.com/crossie/argorel/master/check_update.html";			
-			JsonObjectRequest checkUpdateRequest =	new JsonObjectRequest(requestUrl, null,
-				new Response.Listener<JSONObject>() {
-					@Override
-					public void onResponse(final JSONObject obj) {
-
-						try {
-							PackageInfo pi = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
-							if (obj.getInt("versionCode") > pi.versionCode){
-								final String url = obj.getString("url");
-								new AlertDialog.Builder(getActivity(),AlertDialog.THEME_HOLO_DARK)   
-								.setTitle("发现新版本")  
-								.setMessage(obj.getString("description"))  
-								.setPositiveButton("下载", new OnClickListener(){
-									@Override
-									public void onClick(DialogInterface dialog,
-											int which) {
-										Intent intent = new Intent();        
-										intent.setAction("android.intent.action.VIEW");    
-										Uri content_url = Uri.parse(url);
-										intent.setData(content_url);  
-										startActivity(intent);
-									}
-								})  
-								.setNegativeButton("取消", null)  
-								.show();
-							} else {
-								Toast.makeText(getActivity(), "暂时没更新",
-									     Toast.LENGTH_SHORT).show();
-							}
-						} catch (NameNotFoundException e1) {
-							Toast.makeText(getActivity(), "系统版本错误",
-								     Toast.LENGTH_SHORT).show();
-						} catch (JSONException e) {
-							Toast.makeText(getActivity(), "获取更新数据错误",
-								     Toast.LENGTH_SHORT).show();
-						} finally {
-							if (mCheckUpdateProgressDialog != null)
-								mCheckUpdateProgressDialog.dismiss();
-						}
-					}
-				}, new Response.ErrorListener() {
-					@Override
-					public void onErrorResponse(VolleyError error) {
-						if (mCheckUpdateProgressDialog != null)
-							mCheckUpdateProgressDialog.dismiss();
-						Toast.makeText(getActivity(), "网络错误,请稍后再试",
-							     Toast.LENGTH_SHORT).show();
-					}
-				}
-			);
-			checkUpdateRequest.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
-			SessionManager.getRequestQueue().add(checkUpdateRequest);
+			checkUpdate();
 			break;
 		case 1:
 			Intent intent = new Intent(getActivity(), DraftActivity.class);
 			startActivity(intent);
+			getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		case 0:
-			if (SessionManager.isLoggedIn) {
-				mLogoutProgressDialog = new ProgressDialog(getActivity());
-				mLogoutProgressDialog.setMessage("注销中...");
-				mLogoutProgressDialog.setCancelable(false);
-				mLogoutProgressDialog
-						.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				mLogoutProgressDialog.show();
-
-				SessionManager.logout();
-			} else {
-				LoginDialog loginDialog = new LoginDialog();
-				loginDialog.show(getFragmentManager(), "loginDialog");
-			}
-			break;
+			loginandout();
 		}
 	}
+	
+	private void about() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(
+				getActivity(), AlertDialog.THEME_HOLO_DARK);
 
+		PackageManager manager = getActivity().getPackageManager();
+		PackageInfo info = null;
+		try {
+			info = manager
+					.getPackageInfo(getActivity().getPackageName(), 0);
+		} catch (NameNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String version = info == null ? "unknown version" :  info.versionName;
+		TextView message = (TextView) builder
+				.setMessage(
+						Html.fromHtml("Argo "
+								+ version
+								+ "<br/>Author:<br/>&nbsp;&nbsp;站内ID scim,<br/>"
+								+ "&nbsp;&nbsp;微博 <a href=\"http://weibo.com/crossie\">@输了就强退</a><br/>"))
+				.setTitle("关于").show().findViewById(android.R.id.message);
+		message.setMovementMethod(LinkMovementMethod.getInstance());
+	}
+	private void checkUpdate() {
+		mCheckUpdateProgressDialog = new ProgressDialog(getActivity());
+		mCheckUpdateProgressDialog.setMessage("检查更新中...");
+		mCheckUpdateProgressDialog.setCancelable(false);
+		mCheckUpdateProgressDialog
+				.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+		mCheckUpdateProgressDialog.show();
+		String requestUrl = "https://raw.githubusercontent.com/crossie/argorel/master/check_update.html";			
+		JsonObjectRequest checkUpdateRequest =	new JsonObjectRequest(requestUrl, null,
+			new Response.Listener<JSONObject>() {
+				@Override
+				public void onResponse(final JSONObject obj) {
+
+					try {
+						PackageInfo pi = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+						if (obj.getInt("versionCode") > pi.versionCode){
+							final String url = obj.getString("url");
+							new AlertDialog.Builder(getActivity(),AlertDialog.THEME_HOLO_DARK)   
+							.setTitle("发现新版本")  
+							.setMessage(obj.getString("description"))  
+							.setPositiveButton("下载", new OnClickListener(){
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									Intent intent = new Intent();        
+									intent.setAction("android.intent.action.VIEW");    
+									Uri content_url = Uri.parse(url);
+									intent.setData(content_url);  
+									startActivity(intent);
+									getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
+								}
+							})  
+							.setNegativeButton("取消", null)  
+							.show();
+						} else {
+							Toast.makeText(getActivity(), "暂时没更新",
+								     Toast.LENGTH_SHORT).show();
+						}
+					} catch (NameNotFoundException e1) {
+						Toast.makeText(getActivity(), "系统版本错误",
+							     Toast.LENGTH_SHORT).show();
+					} catch (JSONException e) {
+						Toast.makeText(getActivity(), "获取更新数据错误",
+							     Toast.LENGTH_SHORT).show();
+					} finally {
+						if (mCheckUpdateProgressDialog != null)
+							mCheckUpdateProgressDialog.dismiss();
+					}
+				}
+			}, new Response.ErrorListener() {
+				@Override
+				public void onErrorResponse(VolleyError error) {
+					if (mCheckUpdateProgressDialog != null)
+						mCheckUpdateProgressDialog.dismiss();
+					Toast.makeText(getActivity(), "网络错误,请稍后再试",
+						     Toast.LENGTH_SHORT).show();
+				}
+			}
+		);
+		checkUpdateRequest.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));
+		SessionManager.getRequestQueue().add(checkUpdateRequest);
+	}
+	private void loginandout() {
+		if (SessionManager.isLoggedIn) {
+			mLogoutProgressDialog = new ProgressDialog(getActivity());
+			mLogoutProgressDialog.setMessage("注销中...");
+			mLogoutProgressDialog.setCancelable(false);
+			mLogoutProgressDialog
+					.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			mLogoutProgressDialog.show();
+
+			SessionManager.logout();
+		} else {
+			LoginDialog loginDialog = new LoginDialog();
+			loginDialog.show(getFragmentManager(), "loginDialog");
+		}
+	}
 }

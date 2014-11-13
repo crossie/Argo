@@ -7,7 +7,7 @@
 		<!-- Theme customizations available in newer API levels can go in res/values-vXX/styles.xml, 
 			while customizations related to backward-compatibility can go here. -->
 		<!-- SwipeBackActivity需要下面这行 -->
-		<item name="android:windowIsTranslucent">true</item>
+		<!-- <item name="android:windowIsTranslucent">true</item> -->
 	</style>
 
 	<!-- Application theme. -->
@@ -20,8 +20,10 @@
 	</style>
 
 	<style name="AnimateTheme" parent="@android:style/Animation.Activity">
-		<item name="android:activityOpenExitAnimation">@anim/translate_exit</item>
-		<item name="android:activityCloseExitAnimation">@anim/translate_exit</item>
+	<!-- 	<item name="android:activityOpenEnterAnimation">@anim/open_enter_slide_in</item>
+		<item name="android:activityOpenExitAnimation">@anim/open_exit_slide_out</item>
+		<item name="android:activityCloseEnterAnimation">@anim/close_enter_slide_in</item>
+		<item name="android:activityCloseExitAnimation">@anim/close_exit_slide_out</item> -->
 	</style>
 
 	<style name="ActionBarStyle" parent="@android:style/Widget.Holo.ActionBar">

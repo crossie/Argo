@@ -81,15 +81,7 @@ public class MainActivity extends FragmentActivity
 	private SlidingMenu mSlidingMenu;
 	
 	//private String mCurrBoard;
-	/**
-	 * 用于设置退出动画
-	 */
-	protected int activityCloseEnterAnimation;
-	/**
-	 * 同上用于设置退出动画
-	 */
-	protected int activityCloseExitAnimation;
-	
+
 	private static final String FRAG_TAG_LEFT_MENU = "FRAG_TAG_LEFT_MENU";
 	private static final String FRAG_TAG_RIGHT_MENU = "FRAG_TAG_RIGHT_MENU";
 	private static final String OUTSTATE_CURR_FRAG_KEY = "OUTSTATE_CURR_FRAG_KEY";
@@ -116,7 +108,7 @@ public class MainActivity extends FragmentActivity
 	@Override
 	public void finish() {
 		super.finish();
-		overridePendingTransition(activityCloseEnterAnimation, activityCloseExitAnimation);
+		overridePendingTransition(R.anim.close_enter_slide_in, R.anim.close_exit_slide_out);
 	}
 	
 	@Override
@@ -197,16 +189,7 @@ public class MainActivity extends FragmentActivity
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 			//changeTabs(VIEW_PAGER_TYPE_HOME);
 		}
-		//实现退出时的动画,不明白为什么要这样写才行
-		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
-		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
-		activityStyle.recycle();
-		activityStyle = getTheme().obtainStyledAttributes(windowAnimationStyleResId, 
-				new int[] {android.R.attr.activityCloseEnterAnimation, android.R.attr.activityCloseExitAnimation});
-		activityCloseEnterAnimation = activityStyle.getResourceId(0, 0);
-		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
-		activityStyle.recycle();
-		
+	
 	}
 	/**
 	 * 保存cookie和登录状态
@@ -218,6 +201,7 @@ public class MainActivity extends FragmentActivity
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putBoolean(PREFERENCE_ISLOGGEDIN, SessionManager.isLoggedIn);
 		editor.commit();
+		//overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 		super.onPause();
 	}
 	

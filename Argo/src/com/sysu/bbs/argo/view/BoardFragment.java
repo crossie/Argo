@@ -1,5 +1,6 @@
 package com.sysu.bbs.argo.view;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -164,6 +165,7 @@ public class BoardFragment extends Fragment implements OnClickListener, Comparab
 			intent.putExtras(param);
 
 			startActivity(intent);
+			getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		}
 		

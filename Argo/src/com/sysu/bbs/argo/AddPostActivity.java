@@ -1,6 +1,8 @@
 package com.sysu.bbs.argo;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
 import android.app.AlertDialog;
@@ -11,9 +13,10 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.TypedArray;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,6 +46,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 	private ImageButton mAttachButton;
 	private Bundle mNewPostBundle;
 	private String mAttachPath = "";
+	private Uri mCapturedUri;
 	/**
 	 * 判断是否从其他应用分享内容到argo
 	 */
@@ -51,6 +55,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 	//private Button mChooseBoard;
 
 	private BroadcastReceiver mLoginReceiver;
+	
 
 	private static final int REQUEST_CODE_CHOOSE_FILE = 6384;
 	private static final int REQUEST_CODE_CAMERA = 6385;
@@ -183,17 +188,6 @@ public class AddPostActivity extends SwipeBackActivity implements
 
 			}
 		};
-		
-		//实现退出时的动画,不明白为什么要这样写才行
-		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
-		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
-		activityStyle.recycle();
-		activityStyle = getTheme().obtainStyledAttributes(windowAnimationStyleResId, 
-				new int[] {android.R.attr.activityCloseEnterAnimation, android.R.attr.activityCloseExitAnimation});
-		activityCloseEnterAnimation = activityStyle.getResourceId(0, 0);
-		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
-		activityStyle.recycle();
-
 	}
 
 	@Override
@@ -273,14 +267,28 @@ public class AddPostActivity extends SwipeBackActivity implements
 	                target, getString(R.string.chooser_title));
 	        try {
 	            startActivityForResult(intent, REQUEST_CODE_CHOOSE_FILE);
+	            overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 	        } catch (ActivityNotFoundException e) {
 	            // The reason for the existence of aFileChooser
 	        }
 	        break;
 		case R.id.start_camera:
+			String state = Environment.getExternalStorageState();
+			if (!state.equals(Environment.MEDIA_MOUNTED)) {
+				Toast.makeText(this, "外部存储不可用", Toast.LENGTH_SHORT).show();
+				return;
+			}
 			Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-			//cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCapturedUri);
+			File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+									"Argo");
+			if (!dir.exists())
+				dir.mkdir();
+			String filename = new SimpleDateFormat("yyyyMMddHHss").format(new Date());
+			File file = new File(dir, "IMG_" + filename + ".jpg");
+			mCapturedUri = Uri.fromFile(file);
+			cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCapturedUri);
 			startActivityForResult(cameraIntent, REQUEST_CODE_CAMERA);
+			overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		}
 
@@ -345,46 +353,17 @@ public class AddPostActivity extends SwipeBackActivity implements
 			draftDir.mkdir();
 		File post = new File(draftDir, System.currentTimeMillis() + "");
 		DraftActivity.add2Draft(post, source);
-		/*FileOutputStream fos = null; 
-		BufferedWriter bw = null; 
-		
-		try {
-			fos = new FileOutputStream(post);
-			bw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
-			bw.write(bundle.getString("type") + "\n");
-			bw.write(bundle.getString("boardname") + "\n");
-			bw.write(bundle.getString("articleid") + "\n");
-			bw.write(bundle.getString("title") + "\n");
-			bw.write(System.currentTimeMillis() + "\n");
-			bw.write(bundle.getString("attach"));
-			bw.write(bundle.getString("content"));
-			
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (bw != null) {
-				try {
-					bw.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}*/
 	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (resultCode != RESULT_OK || data == null) {
+		if (resultCode != RESULT_OK) 
 			return;
-		}
         switch (requestCode) {
         case REQUEST_CODE_CHOOSE_FILE:
             // Get the URI of the selected file
+            if (data == null)
+            	return;
             final Uri uri = data.getData();
             try {
                 // Get the file path from the URI
@@ -412,27 +391,19 @@ public class AddPostActivity extends SwipeBackActivity implements
             break;
         case REQUEST_CODE_CAMERA:
         	//mAttachPath = FileUtils.getPath(this, mCapturedUri);
-        	mAttachPath = data.getData().getPath();
+            mAttachPath = mCapturedUri.getPath();
         	Toast.makeText(this, mAttachPath, Toast.LENGTH_SHORT).show();
         	break;
         }        	
         super.onActivityResult(requestCode, resultCode, data);
 	}
 	/**
-	 * 用于设置退出动画
-	 */
-	protected int activityCloseEnterAnimation;
-	/**
-	 * 同上用于设置退出动画
-	 */
-	protected int activityCloseExitAnimation;
-	/**
 	 * 实现退出动画，未知为何要这样写才会有动画
 	 */
 	@Override
 	public void finish() {
 		super.finish();
-		overridePendingTransition(activityCloseEnterAnimation, activityCloseExitAnimation);
+		overridePendingTransition(R.anim.close_enter_slide_in, R.anim.close_exit_slide_out);
 	}
 
 }

@@ -11,7 +11,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
-import android.content.res.TypedArray;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,16 +44,6 @@ public class ImageViewerActivity extends FragmentActivity implements OnPageChang
 		
 		mIndicator = (TextView) findViewById(R.id.indicator);
 		mIndicator.setText(String.format("%d/%d", 1, mUrlList.size()));
-		
-		//实现退出时的动画,不明白为什么要这样写才行
-		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
-		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
-		activityStyle.recycle();
-		activityStyle = getTheme().obtainStyledAttributes(windowAnimationStyleResId, 
-				new int[] {android.R.attr.activityCloseEnterAnimation, android.R.attr.activityCloseExitAnimation});
-		activityCloseEnterAnimation = activityStyle.getResourceId(0, 0);
-		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
-		activityStyle.recycle();
 	}
 	
 	public void saveImage(View v) throws NoSuchAlgorithmException {
@@ -142,20 +131,10 @@ public class ImageViewerActivity extends FragmentActivity implements OnPageChang
 		mIndicator.setText(String.format("%d/%d", pos + 1, mUrlList.size()));
 		
 	}
-	/**
-	 * 用于设置退出动画
-	 */
-	protected int activityCloseEnterAnimation;
-	/**
-	 * 同上用于设置退出动画
-	 */
-	protected int activityCloseExitAnimation;
-	/**
-	 * 实现退出动画，未知为何要这样写才会有动画
-	 */
+
 	@Override
 	public void finish() {
 		super.finish();
-		overridePendingTransition(activityCloseEnterAnimation, activityCloseExitAnimation);
+		overridePendingTransition(R.anim.close_enter_slide_in, R.anim.close_exit_slide_out);
 	}
 }

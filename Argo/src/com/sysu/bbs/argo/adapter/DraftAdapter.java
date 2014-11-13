@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -183,7 +184,7 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 		intent.putExtras(param);
 
 		getContext().startActivity(intent);
-		
+		((Activity)getContext()).overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 	}
 
 }

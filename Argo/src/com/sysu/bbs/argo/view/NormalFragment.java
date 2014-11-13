@@ -178,6 +178,7 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 			intent.putExtra("filename", post.getFilename());
 			
 			startActivity(intent);
+			getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			return true;
 		case R.string.menu_title_share:
 			intent = new Intent(Intent.ACTION_SEND);
@@ -186,6 +187,7 @@ public class NormalFragment extends AbstractBoardFragment<PostHead> implements
 			intent.putExtra(Intent.EXTRA_SUBJECT, "分享内容和链接");
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "分享到..."));
+			getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			return true;
 		case R.string.menu_title_delete:
 			

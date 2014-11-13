@@ -154,6 +154,8 @@ abstract public class AbstractHomeFragment<T extends Parcelable> extends Fragmen
 		
 		startActivity(intent);
 		
+		getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
+		
 	}
 	
 	abstract public String getBoard(T item);
