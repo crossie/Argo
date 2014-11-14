@@ -17,7 +17,7 @@ public class Post implements Parcelable {
 	String rawcontent;
 	String rawsignature;
 	String bbsname;
-	//Attachment ah;
+	Attachment ah;
 	String filename;
 	String perm_del;
 	String type;
@@ -34,7 +34,11 @@ public class Post implements Parcelable {
 		filename = obj.getString("filename");
 		post_time = obj.getString("post_time");
 		perm_del = obj.getString("perm_del");
-	
+		try {
+			ah = new Attachment(obj.getJSONObject("ah"));
+		} catch (JSONException e) {
+			ah = null;
+		}
 		parse(rawcontent);
 	}
 	
@@ -57,6 +61,7 @@ public class Post implements Parcelable {
 		type = in.readString();
 		parsedContent = in.readString();
 		parsedQuote = in.readString();
+		ah = in.readParcelable(Attachment.class.getClassLoader());
 	}
 
 	private void parse(String rawcontent2) {
@@ -125,12 +130,12 @@ public class Post implements Parcelable {
 	public void setBbsname(String bbsname) {
 		this.bbsname = bbsname;
 	}
-/*	public Attachment getAh() {
+	public Attachment getAh() {
 		return ah;
 	}
 	public void setAh(Attachment ah) {
 		this.ah = ah;
-	}*/
+	}
 	public String getFilename() {
 		return filename;
 	}
@@ -189,6 +194,7 @@ public class Post implements Parcelable {
 		dest.writeString(type);
 		dest.writeString(parsedContent);
 		dest.writeString(parsedQuote);
+		dest.writeParcelable(ah, f);
 		
 	}
 	@SuppressWarnings("rawtypes")

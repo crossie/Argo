@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils.TruncateAt;
 import android.view.LayoutInflater;
@@ -37,6 +38,7 @@ import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.ImageViewerActivity;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.api.API;
+import com.sysu.bbs.argo.api.dao.Attachment;
 import com.sysu.bbs.argo.api.dao.Post;
 import com.sysu.bbs.argo.api.dao.PostHead;
 import com.sysu.bbs.argo.util.SessionManager;
@@ -215,6 +217,17 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 						lower.endsWith(".png"))					
 					imageUrl.add(url);
 			}
+			Attachment ah = post.getAh();
+			if ( ah != null) {
+				String link = ah.getLink();
+				String actualLink = API.entry + link.replace("A.","").replace(".A", "");
+				if ("1".equals(ah.getIs_picture())) {
+					imageUrl.add(actualLink);
+				} else {
+					holder.btnAttachment.setVisibility(View.VISIBLE);
+					holder.btnAttachment.setTag(actualLink);
+				}
+			}
 			if (imageUrl.size() > 0) {
 				holder.btnPicture.setVisibility(View.VISIBLE);
 				holder.btnPicture.setTag(imageUrl);
@@ -258,6 +271,7 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
@@ -283,13 +297,19 @@ public class PostAdapter extends ArrayAdapter<PostHead> implements OnClickListen
 			}
 			break;
 		case R.id.view_attachment:
+			Intent intent = new Intent();        
+			intent.setAction("android.intent.action.VIEW");    
+			Uri content_url = Uri.parse((String) v.getTag());
+			intent.setData(content_url);  
+			getContext().startActivity(intent);
+			((Activity)getContext()).overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		case R.id.view_image:
-			Intent intent = new Intent(getContext(), ImageViewerActivity.class);
+			Intent intent2 = new Intent(getContext(), ImageViewerActivity.class);
 			Bundle param = new Bundle();
 			param.putStringArrayList(ImageViewerActivity.IMAGE_LIST_KEY, (ArrayList<String>) v.getTag());
-			intent.putExtras(param);
-			getContext().startActivity(intent);
+			intent2.putExtras(param);
+			getContext().startActivity(intent2);
 			((Activity)getContext()).overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		default:
