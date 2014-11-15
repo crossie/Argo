@@ -71,6 +71,10 @@
 	<string name="menu_tab_close_others">关闭其他</string>
 	<string name="menu_tab_close_all">关闭全部</string>
 	
+	<string name="menu_view_attach">查看</string>
+	<string name="menu_delete_attach">删除</string>
+	<string name="menu_reselect_attach">重选</string>
+	
 	<string name="chooser_title">选择附件</string>
 	<string name="choose_file">添加附件</string> 
 </resources>

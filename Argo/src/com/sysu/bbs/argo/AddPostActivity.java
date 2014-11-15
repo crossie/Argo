@@ -18,9 +18,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Html;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -79,6 +81,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 		mEditContent = (EditText) findViewById(R.id.new_post_content);
 		//mChooseBoard = (Button) findViewById(R.id.new_post_choose_board);
 		mAttachButton = (ImageButton) findViewById(R.id.attachment);
+		registerForContextMenu(mAttachButton);
 		Intent intent = getIntent();
 		String action = intent.getAction();
 		String type = intent.getType();
@@ -243,11 +246,9 @@ public class AddPostActivity extends SwipeBackActivity implements
 		switch (v.getId()) {
 		case R.id.new_post_send:
 			if (!SessionManager.isLoggedIn) {
-
 				LoginDialog loginDialog = new LoginDialog();
 				loginDialog.show(getSupportFragmentManager(), "loginDialog");
 				break;
-
 			}
 			if (mNewPostBundle.getString("boardname") == null
 					|| mNewPostBundle.getString("boardname").equals("")) {
@@ -259,18 +260,10 @@ public class AddPostActivity extends SwipeBackActivity implements
 			break;
 		case R.id.attachment:
 			if (mAttachPath != null && !mAttachPath.equals("")) {
-				//TODO ask whether to view or update or delete
+				v.showContextMenu();
+				break;
 			}
-			Intent target = FileUtils.createGetContentIntent();
-	        // Create the chooser Intent
-	        Intent intent = Intent.createChooser(
-	                target, getString(R.string.chooser_title));
-	        try {
-	            startActivityForResult(intent, REQUEST_CODE_CHOOSE_FILE);
-	            overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
-	        } catch (ActivityNotFoundException e) {
-	            // The reason for the existence of aFileChooser
-	        }
+			chooseFile();
 	        break;
 		case R.id.start_camera:
 			String state = Environment.getExternalStorageState();
@@ -295,13 +288,18 @@ public class AddPostActivity extends SwipeBackActivity implements
 	}
 
 	public void sendPost() {
+		if (mAttachPath != null && !mAttachPath.equals("")) {
+			File file = new File(mAttachPath);
+			if (!file.exists() || !file.canRead()) {
+				Toast.makeText(this, "文件不存在或不可读", Toast.LENGTH_SHORT).show();
+				return;
+			}
+		}
 		Intent service = new Intent(this, PostService.class);
-
 		mNewPostBundle.putString("title", mEditTitle.getText().toString());
-		mNewPostBundle.putString("content", mEditContent.getText().toString());
+		mNewPostBundle.putString("content", mEditContent.getText().toString());	
 		mNewPostBundle.putString("attach", mAttachPath);
 		service.putExtras(mNewPostBundle);
-
 		startService(service);
 		finish();
 	}
@@ -390,9 +388,8 @@ public class AddPostActivity extends SwipeBackActivity implements
             }
             break;
         case REQUEST_CODE_CAMERA:
-        	//mAttachPath = FileUtils.getPath(this, mCapturedUri);
             mAttachPath = mCapturedUri.getPath();
-        	Toast.makeText(this, mAttachPath, Toast.LENGTH_SHORT).show();
+            mAttachButton.setImageResource(R.drawable.ic_action_picture);
         	break;
         }        	
         super.onActivityResult(requestCode, resultCode, data);
@@ -405,5 +402,154 @@ public class AddPostActivity extends SwipeBackActivity implements
 		super.finish();
 		overridePendingTransition(R.anim.close_enter_slide_in, R.anim.close_exit_slide_out);
 	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		menu.add(R.layout.activity_new_post, R.string.menu_view_attach, 0, R.string.menu_view_attach);
+		menu.add(R.layout.activity_new_post, R.string.menu_delete_attach, 0, R.string.menu_delete_attach);
+		menu.add(R.layout.activity_new_post, R.string.menu_reselect_attach, 0, R.string.menu_reselect_attach);
+	}
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		if (item.getGroupId() != R.layout.activity_new_post)
+			return false;
+		switch(item.getItemId()) {
+		case R.string.menu_view_attach:
+			File file = new File(mAttachPath);
+			if (!file.exists() || !file.canRead()) {
+				Toast.makeText(this, "文件不存在或不可读", Toast.LENGTH_SHORT).show();
+				mAttachPath = null;
+				mAttachButton.setImageResource(R.drawable.ic_action_new_attachment);
+				return true;
+			}				
+			Intent intent = new Intent();        
+			intent.setAction("android.intent.action.VIEW");    
+			//Uri content_url = Uri.fromFile(file);
+			intent.setDataAndType(Uri.fromFile(file), getMIMEType(file));  
+			try {
+				startActivity(intent);
+				overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
+			} catch (ActivityNotFoundException e) {
+				Toast.makeText(this, "找不到关联的应用程序", Toast.LENGTH_SHORT).show();
+				return true;
+			}
+			return true;
+		case R.string.menu_delete_attach:
+			mAttachPath = null;
+			mAttachButton.setImageResource(R.drawable.ic_action_new_attachment);
+			return true;
+		case R.string.menu_reselect_attach:
+			chooseFile();
+			return true;
+		}
+		return super.onContextItemSelected(item);
+	}
+	
+	private void chooseFile() {
+		Intent target = FileUtils.createGetContentIntent();
+        // Create the chooser Intent
+        Intent intent = Intent.createChooser(
+                target, getString(R.string.chooser_title));
+        try {
+            startActivityForResult(intent, REQUEST_CODE_CHOOSE_FILE);
+            overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
+        } catch (ActivityNotFoundException e) {
+            // The reason for the existence of aFileChooser
+        }
+	}
+	
+	public static final String[][] MIME_MapTable= { 
+            //{后缀名，MIME类型} 
+            {".3gp",    "video/3gpp"}, 
+            {".apk",    "application/vnd.android.package-archive"}, 
+            {".asf",    "video/x-ms-asf"}, 
+            {".avi",    "video/x-msvideo"}, 
+            {".bin",    "application/octet-stream"}, 
+            {".bmp",    "image/bmp"}, 
+            {".c",  "text/plain"}, 
+            {".class",  "application/octet-stream"}, 
+            {".conf",   "text/plain"}, 
+            {".cpp",    "text/plain"}, 
+            {".doc",    "application/msword"}, 
+            {".docx",   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}, 
+            {".xls",    "application/vnd.ms-excel"},  
+            {".xlsx",   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}, 
+            {".exe",    "application/octet-stream"}, 
+            {".gif",    "image/gif"}, 
+            {".gtar",   "application/x-gtar"}, 
+            {".gz", "application/x-gzip"}, 
+            {".h",  "text/plain"}, 
+            {".htm",    "text/html"}, 
+            {".html",   "text/html"}, 
+            {".jar",    "application/java-archive"}, 
+            {".java",   "text/plain"}, 
+            {".jpeg",   "image/jpeg"}, 
+            {".jpg",    "image/jpeg"}, 
+            {".js", "application/x-javascript"}, 
+            {".log",    "text/plain"}, 
+            {".m3u",    "audio/x-mpegurl"}, 
+            {".m4a",    "audio/mp4a-latm"}, 
+            {".m4b",    "audio/mp4a-latm"}, 
+            {".m4p",    "audio/mp4a-latm"}, 
+            {".m4u",    "video/vnd.mpegurl"}, 
+            {".m4v",    "video/x-m4v"},  
+            {".mov",    "video/quicktime"}, 
+            {".mp2",    "audio/x-mpeg"}, 
+            {".mp3",    "audio/x-mpeg"}, 
+            {".mp4",    "video/mp4"}, 
+            {".mpc",    "application/vnd.mpohun.certificate"},        
+            {".mpe",    "video/mpeg"},   
+            {".mpeg",   "video/mpeg"},   
+            {".mpg",    "video/mpeg"},   
+            {".mpg4",   "video/mp4"},    
+            {".mpga",   "audio/mpeg"}, 
+            {".msg",    "application/vnd.ms-outlook"}, 
+            {".ogg",    "audio/ogg"}, 
+            {".pdf",    "application/pdf"}, 
+            {".png",    "image/png"}, 
+            {".pps",    "application/vnd.ms-powerpoint"}, 
+            {".ppt",    "application/vnd.ms-powerpoint"}, 
+            {".pptx",   "application/vnd.openxmlformats-officedocument.presentationml.presentation"}, 
+            {".prop",   "text/plain"}, 
+            {".rc", "text/plain"}, 
+            {".rmvb",   "audio/x-pn-realaudio"}, 
+            {".rtf",    "application/rtf"}, 
+            {".sh", "text/plain"}, 
+            {".tar",    "application/x-tar"},    
+            {".tgz",    "application/x-compressed"},  
+            {".txt",    "text/plain"}, 
+            {".wav",    "audio/x-wav"}, 
+            {".wma",    "audio/x-ms-wma"}, 
+            {".wmv",    "audio/x-ms-wmv"}, 
+            {".wps",    "application/vnd.ms-works"}, 
+            {".xml",    "text/plain"}, 
+            {".z",  "application/x-compress"}, 
+            {".zip",    "application/x-zip-compressed"}, 
+            {"",        "*/*"}   
+        }; 
+	/**
+	  * 根据文件后缀名获得对应的MIME类型。
+	 * @param file
+	  */ 
+	 public static String getMIMEType(File file) { 
+	      
+	     String type="*/*"; 
+	     String fName = file.getName(); 
+	     //获取后缀名前的分隔符"."在fName中的位置。 
+	     int dotIndex = fName.lastIndexOf("."); 
+	     if(dotIndex < 0){ 
+	         return type; 
+	     } 
+	     /* 获取文件的后缀名*/ 
+	     String end=fName.substring(dotIndex,fName.length()).toLowerCase(); 
+	     if(end=="")return type; 
+	     //在MIME和文件类型的匹配表中找到对应的MIME类型。 
+	     for(int i=0;i<MIME_MapTable.length;i++){ //MIME_MapTable??在这里你一定有疑问，这个MIME_MapTable是什么？ 
+	         if(end.equals(MIME_MapTable[i][0])) 
+	             type = MIME_MapTable[i][1]; 
+	     }        
+	     return type; 
+	 } 
 
 }

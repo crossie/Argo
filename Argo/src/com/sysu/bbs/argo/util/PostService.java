@@ -30,6 +30,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
+import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.DraftActivity;
 import com.sysu.bbs.argo.R;
 import com.sysu.bbs.argo.api.API;
@@ -169,15 +170,16 @@ public class PostService extends Service {
 						String filename = params[i+1].substring(start, end);
 						File f = new File(params[i + 1]);
 						fis = new FileInputStream(f);
-						sb.append(String.format("Content-Disposition: form-data; name=\"attach\"; filename=\"%s\"\r\n",filename));
-						boolean isImage = filename.endsWith("jpg") || filename.endsWith("jpeg") ||
-		                		filename.endsWith("png") || filename.endsWith("bmp") ||
-		                		filename.endsWith("gif");
-		                if (isImage) 
-		                	sb.append("Content-Type: image/jpeg;\r\n\r\n");
+						sb.append(String.format("Content-Disposition: form-data; name=\"attach\"; filename=\"%s\"\r\n",filename));						
+						String mimeType = AddPostActivity.getMIMEType(f);
+						if (mimeType != null && !mimeType.equals("*/*"))
+		                	sb.append(String.format("Content-Type: %s;\r\n\r\n", mimeType));
 		                else 
 		                	sb.append("Content-type: application/octet-stream\r\n\r\n");
 		                os.write(sb.toString().getBytes());
+		                boolean isImage = filename.endsWith("jpg") || filename.endsWith("jpeg") ||
+		                		filename.endsWith("png") || filename.endsWith("bmp") ||
+		                		filename.endsWith("gif");
 		                if (isImage && f.length() > 1024*1024 ) {
 		                	Bitmap bitmap = BitmapFactory.decodeStream(fis);
 		                	bitmap.compress(CompressFormat.JPEG, (int)(100*1024*1024/f.length()), os);
@@ -191,7 +193,7 @@ public class PostService extends Service {
 				}
 				os.write(("\r\n--" + boundary + "--\r\n").getBytes());
 			} catch (IOException e) {
-
+				return null;
 			} finally {
 				try {
 					if (os != null) 
