@@ -8,21 +8,24 @@ import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.text.Html;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -87,16 +90,27 @@ public class AddPostActivity extends SwipeBackActivity implements
 		String type = intent.getType();
 
 		//从其他app分享过来
-		if (Intent.ACTION_SEND.equals(action) && "text/plain".equals(type)) {
-
-			mEditContent.setText(intent.getStringExtra(Intent.EXTRA_TEXT));
+		if (Intent.ACTION_SEND.equals(action) ) {			
 			mNewPostBundle = new Bundle();
-			mNewPostBundle.putString("type", "new");
-			
+			mNewPostBundle.putString("type", "new");			
 			mIsShared = true;
-			//mChooseBoard.setVisibility(View.VISIBLE);
-			//mChooseBoard.setText("选择版面");
-
+			if ("text/plain".equals(type)) {
+				mEditContent.setText(intent.getStringExtra(Intent.EXTRA_TEXT));
+			} else if (type.matches("image/.*")) {
+				Bundle extras = intent.getExtras();
+				if (extras.containsKey(Intent.EXTRA_STREAM)) {
+					Uri uri = (Uri)extras.getParcelable(Intent.EXTRA_STREAM);
+					String scheme = uri.getScheme();
+		            if(scheme.equals("content")){
+		                ContentResolver cr = getContentResolver();
+		                Cursor c = cr.query(uri,null,null,null,null);
+		                c.moveToFirst();
+		                mAttachPath = c.getString(c.getColumnIndexOrThrow(Images.Media.DATA));
+		                c.close();
+		                mAttachButton.setImageResource(R.drawable.ic_action_picture);
+		            }
+				}
+			}
 			return;
 		}
 		mNewPostBundle = intent.getExtras();
