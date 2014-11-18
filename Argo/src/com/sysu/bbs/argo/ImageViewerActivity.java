@@ -72,28 +72,28 @@ public class ImageViewerActivity extends FragmentActivity implements OnPageChang
 				.digest(url.getBytes()));
 		File cacheDir = new File(getFilesDir(), "Cache");
 		File cache = new File(cacheDir, urlHash);
-		
+				
 		AsyncTask<File, Void, Boolean> saveTask = new AsyncTask<File, Void, Boolean>() {
 
+			File savedFile;
 			@Override
 			protected Boolean doInBackground(File... files) {
 				File input = files[0];
-				File output = files[1];
+				savedFile = files[1];
 				BufferedInputStream bis = null;
 				BufferedOutputStream bos = null;
 				byte[] tmp = new byte[1000];
 				try {
 					bis = new BufferedInputStream(new FileInputStream(input));
-					bos = new BufferedOutputStream(new FileOutputStream(output));
+					bos = new BufferedOutputStream(new FileOutputStream(savedFile));
 					while (bis.read(tmp) > 0)
-						bos.write(tmp);
-					Toast.makeText(ImageViewerActivity.this, "已保存至 " + output.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+						bos.write(tmp);					
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					return Boolean.valueOf(false);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					return Boolean.valueOf(false);
 				} finally {
 					try {
 						if (bis != null)
@@ -101,16 +101,28 @@ public class ImageViewerActivity extends FragmentActivity implements OnPageChang
 						if (bos != null)
 							bos.close();
 					} catch (IOException e) {
-						
+						return Boolean.valueOf(false);
 					}
 						
 				}
-				return null;
+				return Boolean.valueOf(true);
+			}
+			
+			@Override
+			protected void onPostExecute(Boolean result) {
+				if (result.booleanValue())
+					Toast.makeText(ImageViewerActivity.this, "已保存至 " + savedFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+				else
+					Toast.makeText(ImageViewerActivity.this, "保存失败", Toast.LENGTH_SHORT).show();
 			}
 			
 		};
-		
-		saveTask.execute(cache, permanent);
+		if (!cache.exists()) 
+			Toast.makeText(ImageViewerActivity.this, "图片未加载完成，不能保存", Toast.LENGTH_SHORT).show();
+		else if (!cache.canRead())
+			Toast.makeText(ImageViewerActivity.this, "读取缓存文件出错", Toast.LENGTH_SHORT).show();
+		else
+			saveTask.execute(cache, permanent);
 		
 	}
 

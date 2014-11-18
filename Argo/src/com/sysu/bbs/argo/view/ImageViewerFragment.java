@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import uk.co.senab.photoview.PhotoViewAttacher;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -81,26 +82,35 @@ public class ImageViewerFragment extends Fragment {
 			ImageRequest getImage = new ImageRequest(mUrl, new Listener<Bitmap>() {
 	
 				@Override
-				public void onResponse(Bitmap img) {
+				public void onResponse(final Bitmap img) {
 					mLoadingImagePB.setVisibility(View.GONE);
 					mImageView.setImageBitmap(img);
+					mAttacher.update();
 					//save to cache
-					FileOutputStream fos = null;
-					try {
-						fos = new FileOutputStream(cache);
-						img.compress(Bitmap.CompressFormat.PNG, 100, fos);
-					} catch (FileNotFoundException e) {
-						
-					} finally {
-						if (fos != null)
+					AsyncTask<File, Void, Void> saveCache = 
+							new AsyncTask<File, Void, Void>() {
+
+						@Override
+						protected Void doInBackground(File... caches) {
+							FileOutputStream fos = null;
 							try {
-								fos.close();
-							} catch (IOException e) {
+								fos = new FileOutputStream(caches[0]);
+								img.compress(Bitmap.CompressFormat.PNG, 100, fos);
+							} catch (FileNotFoundException e) {
 								
+							} finally {
+								if (fos != null)
+									try {
+										fos.close();
+									} catch (IOException e) {
+										
+									}
 							}
-					}
-					
-					
+							return null;
+						}
+						
+					};
+					saveCache.execute(new File[] { cache });
 				}
 			}, 0, 0, null, null );
 			getImage.setRetryPolicy(new DefaultRetryPolicy(3000, 2, 2));

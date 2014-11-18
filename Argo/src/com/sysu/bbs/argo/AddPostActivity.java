@@ -125,7 +125,6 @@ public class AddPostActivity extends SwipeBackActivity implements
 					mEditTitle.setText(mNewPostBundle.getString("title"));
 
 				String tmp = mNewPostBundle.getString("content");
-
 				tmp = tmp.substring(0, Math.min(150, tmp.length()));
 				tmp = tmp.replaceAll("(?m)^", ": ").replace("\n", "<br/>");
 
@@ -133,7 +132,6 @@ public class AddPostActivity extends SwipeBackActivity implements
 				quote = String.format(quote,
 						mNewPostBundle.getString("userid"),
 						mNewPostBundle.getString("username"), tmp);
-
 				mEditContent.setText(Html.fromHtml(quote));
 			}
 		} else if (mNewPostBundle.getInt("_where_") == 2) {// draft
@@ -156,43 +154,34 @@ public class AddPostActivity extends SwipeBackActivity implements
 							parsedQuote +=  "<br/>";
 					}
 				}
-
 			}
 			content = String.format(content, parsedContent, parsedQuote).replace("\n", "<br/>");
-
 			mEditContent.setText(Html.fromHtml(content));
-
-			// mDraft = mNewPostBundle.getString("_draft_");
 		}
 		
 		if (mNewPostBundle.getString("boardname", "null").equals("null")) {
 			mNewPostBundle.putString("type", "new");
-			//mChooseBoard.setVisibility(View.VISIBLE);
-			//mChooseBoard.setText("选择版面");
-		}
-		
+		}		
 		mAttachPath = mNewPostBundle.getString("attach");
 		if ( mAttachPath != null && !mAttachPath.equals("")) {
-			//TODO 设置附件按钮图标
+			String pathLower = mAttachPath.toLowerCase();
+			if (pathLower.endsWith("jpg") || pathLower.endsWith("jpeg") ||
+            		pathLower.endsWith("png") || pathLower.endsWith("bmp") ||
+            		pathLower.endsWith("gif")) 
+            	mAttachButton.setImageResource(R.drawable.ic_action_picture);
 		} else {
-			//保证mAttachPath不为null
 			mAttachPath = "";
 		}
 
 		//将输入焦点放到正文输入框
 		mEditContent.post(new Runnable() {
-
 			@Override
 			public void run() {
-				mEditContent.requestFocus();
-				
-			}
-			
-		});
-		
+				mEditContent.requestFocus();				
+			}			
+		});		
 		//登录后自动发送帖子
 		mLoginReceiver = new BroadcastReceiver() {
-
 			@Override
 			public void onReceive(Context con, Intent intent) {
 				String action = intent.getAction();
@@ -202,7 +191,6 @@ public class AddPostActivity extends SwipeBackActivity implements
 						sendPost();
 					}
 				}
-
 			}
 		};
 	}
@@ -302,7 +290,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 	}
 
 	public void sendPost() {
-		if (mAttachPath != null && !mAttachPath.equals("")) {
+		if (mAttachPath != null && !mAttachPath.equals("") && !mAttachPath.equals("null")) {
 			File file = new File(mAttachPath);
 			if (!file.exists() || !file.canRead()) {
 				Toast.makeText(this, "文件不存在或不可读", Toast.LENGTH_SHORT).show();
@@ -364,7 +352,7 @@ public class AddPostActivity extends SwipeBackActivity implements
 		if (!draftDir.exists())
 			draftDir.mkdir();
 		File post = new File(draftDir, System.currentTimeMillis() + "");
-		DraftActivity.add2Draft(post, source);
+		DraftActivity.add2Draft(post.getAbsolutePath(), source);
 	}
 	
 	@Override

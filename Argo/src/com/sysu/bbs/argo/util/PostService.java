@@ -74,7 +74,8 @@ public class PostService extends Service {
 			paramList.add(postBundle.getString("articleid"));
 			
 		}
-		if (postBundle.getString("attach") != null && !postBundle.getString("attach").equals("")) {
+		if (postBundle.getString("attach") != null && !postBundle.getString("attach").equals("")
+				&& !postBundle.getString("attach").equals("null")) {
 			paramList.add("attach");
 			paramList.add(postBundle.getString("attach"));
 			
@@ -129,7 +130,7 @@ public class PostService extends Service {
 		if (!draftDir.exists())
 			draftDir.mkdir();
 		File post = new File(draftDir, System.currentTimeMillis() + "");
-		DraftActivity.add2Draft(post, source);
+		DraftActivity.add2Draft(post.getAbsolutePath(), source);
 	}
 	
 	class PostTask extends AsyncTask<String, Void, String> {

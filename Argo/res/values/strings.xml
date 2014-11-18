@@ -41,6 +41,7 @@
     <string name="title_activity_settings">设置</string>
     <string name="setting_post_order">帖子按时间降序排列</string>
     <string name="setting_post_mode">默认显示帖子模式</string>
+    <string name="setting_clear_pic_cache">删除图片缓存</string>
     
     <string name="menu_title_share">分享</string>
     <string name="menu_title_copy">复制</string>

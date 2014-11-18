@@ -36,10 +36,10 @@ import com.sysu.bbs.argo.api.dao.Post;
 
 public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListener {
 
-	private HashMap<File, Post> mPostMap;
+	private HashMap<File, Draft> mDraftMap;
 	public DraftAdapter(Context context, int resource, ArrayList<File> objects) {
 		super(context, resource, objects);
-		mPostMap = new HashMap<File, Post>();
+		mDraftMap = new HashMap<File, Draft>();
 	}
 
 	@Override
@@ -76,32 +76,29 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 					})
 					.setNegativeButton("否", null)
 					.show();
-
-
-					
 				}
 			});
 			v.setTag(holder);
 		}
 		
 		File file = getItem(position);
-		Post post = mPostMap.get(file);
-		if (post == null ) {
-			post = getPost(file);
-			mPostMap.put(file, post);
+		Draft draft = mDraftMap.get(file);
+		if (draft == null ) {
+			draft = getDraft(file);
+			mDraftMap.put(file, draft);
 		}
-		holder.tvContent.setText(post.getParsedContent());
-		String quote = post.getParsedQuote();
+		holder.tvContent.setText(draft.getParsedContent());
+		String quote = draft.getParsedQuote();
 		if (quote != null && !quote.equals(""))
-			holder.tvQuote.setText(post.getParsedQuote());
+			holder.tvQuote.setText(draft.getParsedQuote());
 		else
 			holder.tvQuote.setVisibility(View.GONE);
-		holder.tvTitle.setText(post.getTitle());
-		holder.tvBoardname.setText(post.getBoard());
+		holder.tvTitle.setText(draft.getTitle());
+		holder.tvBoardname.setText(draft.getBoard());
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("ddMMM HH:mm   ", Locale.US);
 		Calendar update = Calendar.getInstance();
-		update.setTimeInMillis(Long.valueOf(post.getPost_time()));
+		update.setTimeInMillis(Long.valueOf(draft.getPost_time()));
 		Date date = update.getTime();		
 		holder.tvTime.setText(sdf.format(date));
 		
@@ -121,28 +118,32 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 	 * @param file
 	 * 保存草稿的文件
 	 */
-	private Post getPost(File file) {
+	private Draft getDraft(File file) {
 		FileInputStream fis = null;
 		BufferedReader br = null;
-		Post post = null;
+		Draft draft = null;
 		try {
 			fis = new FileInputStream(file);
 			br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
 			
-			post = new Post();
-			post.setType(br.readLine());
-			post.setBoard(br.readLine());
-			post.setFilename(br.readLine());
-			post.setTitle(br.readLine());
-			post.setPost_time(br.readLine());
-			//post.set
+			draft = new Draft();
+			draft.setType(br.readLine());
+			draft.setBoard(br.readLine());
+			draft.setFilename(br.readLine());
+			draft.setTitle(br.readLine());
+			draft.setPost_time(br.readLine());
+
+			String ah = br.readLine();
+			if (ah != null && !ah.equals("null") && !ah.equals("")) {
+				draft.setPath(ah);
+			}
 			
 			String s = "", line;
 			while ((line = br.readLine()) != null)
 				s += line + "\n";
-			post.setRawcontent(s);
+			draft.setRawcontent(s);
 			
-			return post;
+			return draft;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return null;
@@ -165,19 +166,20 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 	}
 
 	@Override
-	public void onItemClick(AdapterView<?> draftList, View draft, int pos, long id) {
+	public void onItemClick(AdapterView<?> draftList, View draftView, int pos, long id) {
 
 		
-		Post post = mPostMap.get(getItem(pos));
+		Draft draft = mDraftMap.get(getItem(pos));
 		Intent intent = new Intent(getContext(), AddPostActivity.class);
 		Bundle param = new Bundle();
-		param.putString("type", post.getType());
-		param.putString("boardname", post.getBoard());
-		param.putString("articleid", post.getFilename());
-		param.putString("title", post.getTitle());
-		param.putString("content", post.getRawcontent());
-		param.putString("userid", post.getUserid());
-		param.putString("username", post.getUsername());
+		param.putString("type", draft.getType());
+		param.putString("boardname", draft.getBoard());
+		param.putString("articleid", draft.getFilename());
+		param.putString("title", draft.getTitle());
+		param.putString("content", draft.getRawcontent());
+		param.putString("userid", draft.getUserid());
+		param.putString("username", draft.getUsername());
+		param.putString("attach", draft.getPath());
 		param.putInt("_where_", 2);
 		param.putString("_draft_", getItem(pos).getAbsolutePath());
 
@@ -185,6 +187,16 @@ public class DraftAdapter extends ArrayAdapter<File> implements OnItemClickListe
 
 		getContext().startActivity(intent);
 		((Activity)getContext()).overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
+	}
+	
+	private class Draft extends Post {
+		String path;
+		String getPath() {
+			return path;
+		}
+		void setPath(String p) {
+			path = p;
+		}
 	}
 
 }
