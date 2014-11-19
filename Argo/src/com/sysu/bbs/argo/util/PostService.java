@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -181,9 +183,26 @@ public class PostService extends Service {
 		                boolean isImage = filename.endsWith("jpg") || filename.endsWith("jpeg") ||
 		                		filename.endsWith("png") || filename.endsWith("bmp") ||
 		                		filename.endsWith("gif");
-		                if (isImage && f.length() > 1024*1024 ) {
-		                	Bitmap bitmap = BitmapFactory.decodeStream(fis);
-		                	bitmap.compress(CompressFormat.JPEG, (int)(100*1024*1024/f.length()), os);
+		                /**图片太大要压缩  
+		                 * 且decode的时候要注意图片方向会被改变
+		                 */
+		                if (isImage && f.length() > 1024*1024 ) {		                	
+		                	ExifInterface exif = new ExifInterface(params[i + 1]);
+		                    int orientation = exif
+		                            .getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
+		                    Matrix m = new Matrix();
+		                    Bitmap bitmap = BitmapFactory.decodeStream(fis);
+		                    if (orientation == ExifInterface.ORIENTATION_ROTATE_180) {
+		                    	m.postRotate(180);
+		                    	m.postScale(bitmap.getWidth(), bitmap.getHeight());
+		                    }
+		                    else if (orientation == ExifInterface.ORIENTATION_ROTATE_270)
+		                    	m.postRotate(270);
+		                    else if (orientation == ExifInterface.ORIENTATION_ROTATE_90)
+		                    	m.postRotate(90);		                    		                    
+		                    Bitmap tmp = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+		                    		bitmap.getHeight(), m, true);;
+		                    tmp.compress(CompressFormat.JPEG, (int)(100*1024*1024/f.length()), os);
 		                } else {							
 							byte[] buffer = new byte[1024];
 							int count = 0;
