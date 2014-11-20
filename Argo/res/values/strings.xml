@@ -15,6 +15,7 @@
     <string name="activity_title_topiclist">同主题阅读</string>
     <string name="activity_title_draft">草稿</string>
     <string name="add_new_post">发表新帖</string>
+    <string name="new_post_choose_board">选择版面</string>
 
 
   
@@ -40,6 +41,7 @@
     <string name="title_activity_settings">设置</string>
     <string name="setting_post_order">帖子按时间降序排列</string>
     <string name="setting_post_mode">默认显示帖子模式</string>
+    <string name="setting_clear_pic_cache">删除图片缓存</string>
     
     <string name="menu_title_share">分享</string>
     <string name="menu_title_copy">复制</string>
@@ -69,4 +71,11 @@
 	<string name="menu_tab_close">关闭</string>
 	<string name="menu_tab_close_others">关闭其他</string>
 	<string name="menu_tab_close_all">关闭全部</string>
+	
+	<string name="menu_view_attach">查看</string>
+	<string name="menu_delete_attach">删除</string>
+	<string name="menu_reselect_attach">重选</string>
+	
+	<string name="chooser_title">选择附件</string>
+	<string name="choose_file">添加附件</string> 
 </resources>

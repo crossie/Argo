@@ -7,12 +7,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
-import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -23,7 +22,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -45,7 +43,7 @@ import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.util.SimpleErrorListener;
 import com.sysu.bbs.argo.util.StringRequestPost;
 
-public class TopicListActivity extends SwipeBackActivity implements
+public class TopicListActivity extends Activity implements
 		OnItemClickListener, OnClickListener {
 
 	private PullToRefreshListView mTopicListView;
@@ -76,7 +74,7 @@ public class TopicListActivity extends SwipeBackActivity implements
 		findViewById(R.id.floating_btn_switch_order).setOnClickListener(this);
 		/*getSwipeBackLayout().setEdgeSize(
 				getWindowManager().getDefaultDisplay().getWidth());*/
-		getSwipeBackLayout().setSensitivity(this, 0.3f);
+		//getSwipeBackLayout().setSensitivity(this, 0.3f);
 		Intent intent = getIntent();
 		mBoardName = intent.getStringExtra("boardname");
 		mFileName = intent.getStringExtra("filename");
@@ -149,7 +147,6 @@ public class TopicListActivity extends SwipeBackActivity implements
 		topicListRequest.setTag(API.GET.AJAX_POST_TOPICLIST);
 		if (savedInstanceState == null || mFileNameListAsec.size() == 0 || mFileNameListDesc.size() == 0)
 			SessionManager.getRequestQueue().add(topicListRequest);
-
 	}
 
 	@Override
@@ -225,6 +222,7 @@ public class TopicListActivity extends SwipeBackActivity implements
 			intent.putExtra(Intent.EXTRA_SUBJECT, "分享内容和链接");
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "分享到..."));
+			overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			return true;
 		case R.string.menu_title_delete:
 			AlertDialog.Builder builder = new AlertDialog.Builder(
@@ -289,5 +287,10 @@ public class TopicListActivity extends SwipeBackActivity implements
 			}
 		}
 		
+	}
+	@Override
+	public void finish() {
+		super.finish();
+		overridePendingTransition(R.anim.close_enter_slide_in, R.anim.close_exit_slide_out);
 	}
 }

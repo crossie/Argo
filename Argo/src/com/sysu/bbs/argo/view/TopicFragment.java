@@ -143,6 +143,7 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 			intent.putExtra(Intent.EXTRA_SUBJECT, "分享内容和链接");
 			intent.putExtra(Intent.EXTRA_TEXT, content);
 			startActivity(Intent.createChooser(intent, "分享到..."));
+			getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			return true;
 		default:
 			break;
@@ -159,6 +160,7 @@ public class TopicFragment extends AbstractBoardFragment<PostHead> implements On
 		intent.putExtra("filename", mPostHeadAdapter.getItem(pos - 1).getFilename());
 
 		getActivity().startActivity(intent);
+		getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 		
 	}
 	

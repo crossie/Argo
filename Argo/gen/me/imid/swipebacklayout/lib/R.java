@@ -16,23 +16,23 @@ public final class R {
 		public static final int shadow_right = 0x7f010024;
 	}
 	public static final class drawable {
-		public static final int ic_launcher = 0x7f020062;
-		public static final int shadow_bottom = 0x7f02006b;
-		public static final int shadow_left = 0x7f02006c;
-		public static final int shadow_right = 0x7f02006d;
+		public static final int ic_launcher = 0x7f02006c;
+		public static final int shadow_bottom = 0x7f020076;
+		public static final int shadow_left = 0x7f020077;
+		public static final int shadow_right = 0x7f020078;
 	}
 	public static final class id {
-		public static final int all = 0x7f060013;
-		public static final int bottom = 0x7f060012;
-		public static final int left = 0x7f06000c;
-		public static final int right = 0x7f06000d;
-		public static final int swipe = 0x7f06008e;
+		public static final int all = 0x7f0a0013;
+		public static final int bottom = 0x7f0a0012;
+		public static final int left = 0x7f0a000c;
+		public static final int right = 0x7f0a000d;
+		public static final int swipe = 0x7f0a0096;
 	}
 	public static final class layout {
-		public static final int swipeback_layout = 0x7f030033;
+		public static final int swipeback_layout = 0x7f030036;
 	}
 	public static final class style {
-		public static final int SwipeBackLayout = 0x7f090002;
+		public static final int SwipeBackLayout = 0x7f090003;
 	}
 	public static final class styleable {
 		public static final int[] SwipeBackLayout = { 0x7f010021, 0x7f010022, 0x7f010023, 0x7f010024, 0x7f010025 };

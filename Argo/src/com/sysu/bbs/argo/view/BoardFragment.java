@@ -1,5 +1,6 @@
 package com.sysu.bbs.argo.view;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -14,7 +15,7 @@ import android.view.ViewGroup;
 
 import com.sysu.bbs.argo.AddPostActivity;
 import com.sysu.bbs.argo.R;
-import com.sysu.bbs.argo.adapter.BoardFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.BoardFragmentPagerAdapter;
 /**
  * 代表一个打开的版面，注意和AbstractBoardFragment的区别
  * @author scim
@@ -164,6 +165,7 @@ public class BoardFragment extends Fragment implements OnClickListener, Comparab
 			intent.putExtras(param);
 
 			startActivity(intent);
+			getActivity().overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 			break;
 		}
 		

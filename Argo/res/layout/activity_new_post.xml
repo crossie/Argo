@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="10dp"
     android:focusable="false"
-    android:focusableInTouchMode="false" >
+    android:focusableInTouchMode="false"
+    android:orientation="vertical"
+    android:padding="10dp" >
 
     <EditText
         android:id="@+id/new_post_title"
@@ -23,12 +23,12 @@
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
         android:layout_weight="1"
-        android:gravity="top"
-        android:inputType="textMultiLine"
-        android:textSize="16sp"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:hint="@string/hint_content" >
+        android:gravity="top"
+        android:hint="@string/hint_content"
+        android:inputType="textMultiLine"
+        android:textSize="16sp" >
 
         <requestFocus />
     </EditText>
@@ -36,23 +36,31 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-       >
-
-        <Button
-            android:id="@+id/new_post_choose_board"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/new_post_send"
-            android:layout_alignTop="@id/new_post_send"
-            android:background="@drawable/add_comment_state_list"
-            android:onClick="onClick"
-            android:visibility="gone" />
+        android:orientation="horizontal" >
 
         <ImageButton
-            android:id="@id/new_post_send"
-            android:layout_width="match_parent"
+            android:id="@+id/attachment"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/new_post_choose_board"
+            android:background="@drawable/add_comment_state_list"
+            android:onClick="onClick"
+            android:src="@drawable/ic_action_new_attachment" />
+
+        <ImageButton
+            android:id="@+id/start_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/item_margin"
+            android:layout_toRightOf="@id/attachment"
+            android:background="@drawable/add_comment_state_list"
+            android:onClick="onClick"
+            android:src="@drawable/ic_action_camera" />
+
+        <ImageButton
+            android:id="@+id/new_post_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
             android:background="@drawable/add_comment_state_list"
             android:onClick="onClick"
             android:src="@drawable/ic_action_send_now" />

@@ -1,10 +1,17 @@
 package com.sysu.bbs.argo;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.FileObserver;
 import android.os.Handler;
@@ -12,7 +19,7 @@ import android.widget.ListView;
 
 import com.sysu.bbs.argo.adapter.DraftAdapter;
 
-public class DraftActivity extends SwipeBackActivity {
+public class DraftActivity extends Activity {
 
 	private ListView mDraftListView;
 	private DraftAdapter mAdapter;
@@ -49,6 +56,7 @@ public class DraftActivity extends SwipeBackActivity {
 		mHandler = new Handler();
 		mDraftObserver = new DraftObserver(draftDir.getAbsolutePath());
 		mDraftObserver.startWatching();
+		
 	}
 
 	@Override
@@ -57,7 +65,15 @@ public class DraftActivity extends SwipeBackActivity {
 		File draftDir = new File(mDraftPath);
 		if (!draftDir.exists())
 			draftDir.mkdir();
-		mDraftList.addAll(Arrays.asList(draftDir.listFiles()));
+		mDraftList.addAll(Arrays.asList(draftDir.listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File f, String name) {
+				// TODO Auto-generated method stub
+				return name.indexOf(".v2") != -1;
+			}
+			
+		})));
 		mAdapter.notifyDataSetChanged();
 		super.onResume();
 	}
@@ -107,5 +123,49 @@ public class DraftActivity extends SwipeBackActivity {
 		}
 
 	}
+	
+	public static void add2Draft(String postPath, Bundle bundle) {
+		FileOutputStream fos = null; 
+		BufferedWriter bw = null; 
+		/*
+		 * 草稿中加了一行保存附件路径，旧版本的草稿文件不能用了
+		 */
+		File post = new File(postPath + ".v2");
+		
+		try {
+			fos = new FileOutputStream(post);
+			bw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
+			bw.write(bundle.getString("type") + "\n");
+			bw.write(bundle.getString("boardname") + "\n");
+			bw.write(bundle.getString("articleid") + "\n");
+			bw.write(bundle.getString("title") + "\n");
+			bw.write(System.currentTimeMillis() + "\n");
+			bw.write(bundle.getString("attach") + "\n");
+			bw.write(bundle.getString("content"));
+			
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (bw != null) {
+				try {
+					bw.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void finish() {
+		super.finish();
+		overridePendingTransition(R.anim.close_enter_slide_in, R.anim.close_exit_slide_out);
+	}
+	
 
 }

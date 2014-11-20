@@ -20,13 +20,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
-import com.sysu.bbs.argo.adapter.BoardFragmentPagerAdapter;
-import com.sysu.bbs.argo.adapter.HomeFragmentPagerAdapter;
-import com.sysu.bbs.argo.adapter.PrivateFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.BoardFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.HomeFragmentPagerAdapter;
+import com.sysu.bbs.argo.adapter.pager.PrivateFragmentPagerAdapter;
 import com.sysu.bbs.argo.util.PersistentCookieStore;
 import com.sysu.bbs.argo.util.SessionManager;
 import com.sysu.bbs.argo.view.LeftMenuFragment;
@@ -79,15 +81,7 @@ public class MainActivity extends FragmentActivity
 	private SlidingMenu mSlidingMenu;
 	
 	//private String mCurrBoard;
-	/**
-	 * 用于设置退出动画
-	 */
-	protected int activityCloseEnterAnimation;
-	/**
-	 * 同上用于设置退出动画
-	 */
-	protected int activityCloseExitAnimation;
-	
+
 	private static final String FRAG_TAG_LEFT_MENU = "FRAG_TAG_LEFT_MENU";
 	private static final String FRAG_TAG_RIGHT_MENU = "FRAG_TAG_RIGHT_MENU";
 	private static final String OUTSTATE_CURR_FRAG_KEY = "OUTSTATE_CURR_FRAG_KEY";
@@ -114,13 +108,14 @@ public class MainActivity extends FragmentActivity
 	@Override
 	public void finish() {
 		super.finish();
-		overridePendingTransition(activityCloseEnterAnimation, activityCloseExitAnimation);
+		overridePendingTransition(R.anim.close_enter_slide_in, R.anim.close_exit_slide_out);
 	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		mCookieStore = new PersistentCookieStore(this);
 		CookieManager cm = new CookieManager(mCookieStore,CookiePolicy.ACCEPT_ALL);
@@ -194,16 +189,7 @@ public class MainActivity extends FragmentActivity
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 			//changeTabs(VIEW_PAGER_TYPE_HOME);
 		}
-		//实现退出时的动画,不明白为什么要这样写才行
-		TypedArray activityStyle = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowAnimationStyle});
-		int windowAnimationStyleResId = activityStyle.getResourceId(0, 0);      
-		activityStyle.recycle();
-		activityStyle = getTheme().obtainStyledAttributes(windowAnimationStyleResId, 
-				new int[] {android.R.attr.activityCloseEnterAnimation, android.R.attr.activityCloseExitAnimation});
-		activityCloseEnterAnimation = activityStyle.getResourceId(0, 0);
-		activityCloseExitAnimation = activityStyle.getResourceId(1, 0);
-		activityStyle.recycle();
-		
+	
 	}
 	/**
 	 * 保存cookie和登录状态
@@ -215,6 +201,7 @@ public class MainActivity extends FragmentActivity
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putBoolean(PREFERENCE_ISLOGGEDIN, SessionManager.isLoggedIn);
 		editor.commit();
+		//overridePendingTransition(R.anim.open_enter_slide_in, R.anim.open_exit_slide_out);
 		super.onPause();
 	}
 	
@@ -301,7 +288,29 @@ public class MainActivity extends FragmentActivity
 		}
 	}
 
-
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_main, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case android.R.id.home:
+			if (!mSlidingMenu.isMenuShowing())
+				mSlidingMenu.showMenu();
+			else
+				mSlidingMenu.showContent();
+			return true;
+		case R.id.show_right_menu:
+			if (!mSlidingMenu.isSecondaryMenuShowing())				
+				mSlidingMenu.showSecondaryMenu();
+			else
+				mSlidingMenu.showContent();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 	/**
 	 * 切换版面：切换到其他view pager，或者新打开一个版面
 	 */
@@ -315,6 +324,7 @@ public class MainActivity extends FragmentActivity
 			mBoardViewPager.setVisibility(View.GONE);
 			//TODO NOT YET IMPLEMENT
 			//getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 			//changeTabs(VIEW_PAGER_TYPE_HOME);
 			break;
 		case VIEW_PAGER_TYPE_PRIVATE:

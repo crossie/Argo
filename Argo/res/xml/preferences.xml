@@ -9,5 +9,7 @@
         android:defaultValue="true"
         android:key="post_mode"
         android:title="@string/setting_post_mode" />
+    <Preference android:key="clear_pic_cache"
+        android:title="@string/setting_clear_pic_cache"/>
 
 </PreferenceScreen>

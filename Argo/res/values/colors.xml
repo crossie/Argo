@@ -5,7 +5,7 @@
     <color name="fav_item_border">#FFFFFF</color>
     
     <color name="add_comment_normal_backgroud">#FFFFFFFF</color>
-    <color name="add_comment_pressed_backgroud">#AA888888</color>
+    <color name="add_comment_pressed_backgroud">#AA85D3EF</color>
     
     <color name="list_item_pressed_background">#888888</color>
     
